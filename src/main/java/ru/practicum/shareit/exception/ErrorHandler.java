@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -44,6 +45,14 @@ public class ErrorHandler {
 
         log.warn("Ошибка валидации входных данных: {}", errorMessage);
         return new ErrorResponse("Ошибка валидации входных данных", errorMessage);
+    }
+
+    @ExceptionHandler(MissingRequestHeaderException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleMissingRequestHeaderException(final MissingRequestHeaderException e) {
+        log.warn("Отсутствует обязательный заголовок: {}", e.getMessage());
+        return new ErrorResponse("Отсутствует обязательный заголовок",
+                "Заголовок " + e.getHeaderName() + " является обязательным");
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
