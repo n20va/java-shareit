@@ -1,7 +1,53 @@
 package ru.practicum.shareit.item.model;
 
-/**
- * TODO Sprint add-controllers.
- */
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+import java.util.Objects;
+
+@Getter
+@Setter
+@ToString
 public class Item {
+    private Long id;
+    private String name;
+    private String description;
+    private Boolean available;
+    private Long ownerId;
+    private Long requestId;
+
+    public Item() {
+    }
+
+    public Item(Long id, String name, String description, Boolean available,
+                Long ownerId, Long requestId) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.available = available;
+        this.ownerId = ownerId;
+        this.requestId = requestId;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Item item = (Item) o;
+        return Objects.equals(id, item.id)
+                && Objects.equals(name, item.name)
+                && Objects.equals(description, item.description)
+                && Objects.equals(available, item.available)
+                && Objects.equals(ownerId, item.ownerId)
+                && Objects.equals(requestId, item.requestId);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name, description, available, ownerId, requestId);
+    }
 }
