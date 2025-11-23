@@ -24,9 +24,6 @@ public class ItemRepository {
     }
 
     public Item update(Item item) {
-        if (!items.containsKey(item.getId())) {
-            throw new IllegalArgumentException("Вещь с ID " + item.getId() + " не найдена");
-        }
         items.put(item.getId(), item);
         return item;
     }
@@ -46,10 +43,6 @@ public class ItemRepository {
     }
 
     public List<Item> search(String text) {
-        if (text == null || text.isBlank()) {
-            return new ArrayList<>();
-        }
-
         String searchText = text.toLowerCase();
         return items.values().stream()
                 .filter(Item::getAvailable)

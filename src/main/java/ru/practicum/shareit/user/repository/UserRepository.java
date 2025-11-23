@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Repository
 public class UserRepository {
@@ -23,10 +24,6 @@ public class UserRepository {
     }
 
     public User update(User user) {
-        if (!users.containsKey(user.getId())) {
-            throw new IllegalArgumentException("Пользователь с ID "
-                    + user.getId() + " не найден");
-        }
         users.put(user.getId(), user);
         return user;
     }

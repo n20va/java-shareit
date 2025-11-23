@@ -1,10 +1,9 @@
 package ru.practicum.shareit.user.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.exception.ConflictException;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.user.dto.CreateUserDto;
 import ru.practicum.shareit.user.dto.UpdateUserDto;
 import ru.practicum.shareit.user.dto.UserDto;
@@ -16,17 +15,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
 
-    @Autowired
-    public UserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
-
     public UserDto createUser(CreateUserDto createUserDto) {
-        validateUserData(createUserDto);
-
         userRepository.findByEmail(createUserDto.getEmail())
                 .ifPresent(user -> {
                     throw new ConflictException("Пользователь с email "
@@ -39,9 +32,7 @@ public class UserService {
     }
 
     public UserDto updateUser(Long userId, UpdateUserDto updateUserDto) {
-        User existingUser = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Пользователь с ID "
-                        + userId + " не найден"));
+        User existingUser = getUserByIdOrThrow(userId);
 
         if (updateUserDto.getEmail() != null
                 && !updateUserDto.getEmail().equals(existingUser.getEmail())) {
@@ -58,9 +49,7 @@ public class UserService {
     }
 
     public UserDto getUserById(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("Пользователь с ID "
-                        + userId + " не найден"));
+        User user = getUserByIdOrThrow(userId);
         return UserMapper.toUserDto(user);
     }
 
@@ -78,20 +67,12 @@ public class UserService {
     }
 
     public User getUserEntity(Long userId) {
+        return getUserByIdOrThrow(userId);
+    }
+
+    private User getUserByIdOrThrow(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь с ID "
                         + userId + " не найден"));
-    }
-
-    private void validateUserData(CreateUserDto createUserDto) {
-        if (createUserDto.getEmail() == null || createUserDto.getEmail().isBlank()) {
-            throw new ValidationException("Email не может быть пустым");
-        }
-        if (!createUserDto.getEmail().contains("@")) {
-            throw new ValidationException("Некорректный формат email");
-        }
-        if (createUserDto.getName() == null || createUserDto.getName().isBlank()) {
-            throw new ValidationException("Имя не может быть пустым");
-        }
     }
 }
