@@ -7,6 +7,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingResponseDto;
@@ -26,7 +27,7 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -175,9 +176,8 @@ class BookingServiceImplTest {
 
     @Test
     void getUserBookings_WithAllState_ShouldReturnBookings() {
-        Pageable pageable = PageRequest.of(0, 10);
         when(userRepository.findById(booker.getId())).thenReturn(Optional.of(booker));
-        when(bookingRepository.findByBookerIdOrderByStartDesc(booker.getId(), pageable))
+        when(bookingRepository.findByBookerIdOrderByStartDesc(eq(booker.getId()), any(Pageable.class)))
                 .thenReturn(List.of(booking));
 
         List<BookingResponseDto> result = bookingService.getUserBookings(
@@ -190,9 +190,8 @@ class BookingServiceImplTest {
 
     @Test
     void getOwnerBookings_WithAllState_ShouldReturnBookings() {
-        Pageable pageable = PageRequest.of(0, 10);
         when(userRepository.findById(owner.getId())).thenReturn(Optional.of(owner));
-        when(bookingRepository.findByItemOwnerIdOrderByStartDesc(owner.getId(), pageable))
+        when(bookingRepository.findByItemOwnerIdOrderByStartDesc(eq(owner.getId()), any(Pageable.class)))
                 .thenReturn(List.of(booking));
 
         List<BookingResponseDto> result = bookingService.getOwnerBookings(
