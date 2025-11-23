@@ -14,9 +14,7 @@ import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.service.UserService;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -79,13 +77,23 @@ public class ItemServiceImpl implements ItemService {
         userService.getUserEntity(ownerId);
 
         List<Item> items = itemRepository.findByOwnerIdOrderById(ownerId);
-        List<Long> itemIds = items.stream().map(Item::getId).collect(Collectors.toList());
+        List<Long> itemIds = items.stream()
+                .filter(Objects::nonNull)
+                .map(Item::getId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        if (itemIds.isEmpty()) {
+            return items.stream()
+                    .map(item -> ItemMapper.toItemDto(item, null, null, Collections.emptyList()))
+                    .collect(Collectors.toList());
+        }
 
         Map<Long, ItemDto.BookingInfo> lastBookings = getLastBookings(itemIds);
         Map<Long, ItemDto.BookingInfo> nextBookings = getNextBookings(itemIds);
         Map<Long, List<CommentDto>> commentsByItem = commentService.getCommentsByItemIds(itemIds)
                 .stream()
-                .collect(Collectors.groupingBy(CommentDto::getId));
+                .collect(Collectors.groupingBy(CommentDto::getItemId));
 
         return items.stream()
                 .map(item -> {
@@ -150,22 +158,29 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private Map<Long, ItemDto.BookingInfo> getLastBookings(List<Long> itemIds) {
-        return itemIds.stream()
-                .collect(Collectors.toMap(
-                        itemId -> itemId,
-                        itemId -> getLastBooking(itemId)
-                ));
+        Map<Long, ItemDto.BookingInfo> result = new HashMap<>();
+        for (Long itemId : itemIds) {
+            if (itemId != null) {
+                result.put(itemId, getLastBooking(itemId));
+            }
+        }
+        return result;
     }
 
     private Map<Long, ItemDto.BookingInfo> getNextBookings(List<Long> itemIds) {
-        return itemIds.stream()
-                .collect(Collectors.toMap(
-                        itemId -> itemId,
-                        itemId -> getNextBooking(itemId)
-                ));
+        Map<Long, ItemDto.BookingInfo> result = new HashMap<>();
+        for (Long itemId : itemIds) {
+            if (itemId != null) {
+                result.put(itemId, getNextBooking(itemId));
+            }
+        }
+        return result;
     }
 
     private ItemDto.BookingInfo toBookingInfo(Booking booking) {
+        if (booking == null || booking.getBooker() == null) {
+            return null;
+        }
         return new ItemDto.BookingInfo(booking.getId(), booking.getBooker().getId());
     }
 }
