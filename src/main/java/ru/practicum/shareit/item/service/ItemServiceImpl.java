@@ -2,25 +2,34 @@ package ru.practicum.shareit.item.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.booking.Booking;
+import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.booking.status.BookingStatus;
 import ru.practicum.shareit.exception.NotFoundException;
-import ru.practicum.shareit.item.dto.CreateItemDto;
-import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.dto.UpdateItemDto;
+import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.service.UserService;
 
+import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class ItemServiceImpl implements ItemService {
     private final ItemRepository itemRepository;
     private final UserService userService;
+    private final BookingRepository bookingRepository;
+    private final CommentService commentService;
 
     @Override
+    @Transactional
     public ItemDto createItem(CreateItemDto createItemDto, Long ownerId) {
         userService.getUserEntity(ownerId);
 
@@ -30,6 +39,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Transactional
     public ItemDto updateItem(Long itemId, UpdateItemDto updateItemDto, Long ownerId) {
         userService.getUserEntity(ownerId);
 
@@ -39,23 +49,51 @@ public class ItemServiceImpl implements ItemService {
             throw new NotFoundException("Пользователь не является владельцем вещи");
         }
 
-        Item updatedItem = ItemMapper.updateItemFromDto(updateItemDto, existingItem);
-        Item savedItem = itemRepository.update(updatedItem);
+        ItemMapper.updateItemFromDto(updateItemDto, existingItem);
+        Item savedItem = itemRepository.save(existingItem);
         return ItemMapper.toItemDto(savedItem);
     }
 
     @Override
     public ItemDto getItemById(Long itemId) {
+        return getItemById(itemId, null);
+    }
+
+    public ItemDto getItemById(Long itemId, Long userId) {
         Item item = getItemByIdOrThrow(itemId);
-        return ItemMapper.toItemDto(item);
+
+        ItemDto.BookingInfo lastBooking = null;
+        ItemDto.BookingInfo nextBooking = null;
+        List<CommentDto> comments = commentService.getCommentsByItemId(itemId);
+
+        if (userId != null && item.getOwnerId().equals(userId)) {
+            lastBooking = getLastBooking(itemId);
+            nextBooking = getNextBooking(itemId);
+        }
+
+        return ItemMapper.toItemDto(item, lastBooking, nextBooking, comments);
     }
 
     @Override
     public List<ItemDto> getUserItems(Long ownerId) {
         userService.getUserEntity(ownerId);
 
-        return itemRepository.findByOwnerId(ownerId).stream()
-                .map(ItemMapper::toItemDto)
+        List<Item> items = itemRepository.findByOwnerIdOrderById(ownerId);
+        List<Long> itemIds = items.stream().map(Item::getId).collect(Collectors.toList());
+
+        Map<Long, ItemDto.BookingInfo> lastBookings = getLastBookings(itemIds);
+        Map<Long, ItemDto.BookingInfo> nextBookings = getNextBookings(itemIds);
+        Map<Long, List<CommentDto>> commentsByItem = commentService.getCommentsByItemIds(itemIds)
+                .stream()
+                .collect(Collectors.groupingBy(CommentDto::getId));
+
+        return items.stream()
+                .map(item -> {
+                    ItemDto.BookingInfo lastBooking = lastBookings.get(item.getId());
+                    ItemDto.BookingInfo nextBooking = nextBookings.get(item.getId());
+                    List<CommentDto> comments = commentsByItem.getOrDefault(item.getId(), Collections.emptyList());
+                    return ItemMapper.toItemDto(item, lastBooking, nextBooking, comments);
+                })
                 .collect(Collectors.toList());
     }
 
@@ -65,12 +103,13 @@ public class ItemServiceImpl implements ItemService {
             return List.of();
         }
 
-        return itemRepository.search(text).stream()
+        return itemRepository.searchAvailableItems(text).stream()
                 .map(ItemMapper::toItemDto)
                 .collect(Collectors.toList());
     }
 
     @Override
+    @Transactional
     public void deleteItem(Long itemId, Long ownerId) {
         userService.getUserEntity(ownerId);
 
@@ -83,8 +122,50 @@ public class ItemServiceImpl implements ItemService {
         itemRepository.deleteById(itemId);
     }
 
+    @Override
+    @Transactional
+    public CommentDto addComment(Long itemId, CreateCommentDto createCommentDto, Long authorId) {
+        return commentService.createComment(itemId, createCommentDto, authorId);
+    }
+
     private Item getItemByIdOrThrow(Long itemId) {
         return itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Вещь с ID " + itemId + " не найдена"));
+    }
+
+    private ItemDto.BookingInfo getLastBooking(Long itemId) {
+        return bookingRepository
+                .findFirstByItemIdAndStartBeforeAndStatusOrderByStartDesc(
+                        itemId, LocalDateTime.now(), BookingStatus.APPROVED)
+                .map(this::toBookingInfo)
+                .orElse(null);
+    }
+
+    private ItemDto.BookingInfo getNextBooking(Long itemId) {
+        return bookingRepository
+                .findFirstByItemIdAndStartAfterAndStatusOrderByStartAsc(
+                        itemId, LocalDateTime.now(), BookingStatus.APPROVED)
+                .map(this::toBookingInfo)
+                .orElse(null);
+    }
+
+    private Map<Long, ItemDto.BookingInfo> getLastBookings(List<Long> itemIds) {
+        return itemIds.stream()
+                .collect(Collectors.toMap(
+                        itemId -> itemId,
+                        itemId -> getLastBooking(itemId)
+                ));
+    }
+
+    private Map<Long, ItemDto.BookingInfo> getNextBookings(List<Long> itemIds) {
+        return itemIds.stream()
+                .collect(Collectors.toMap(
+                        itemId -> itemId,
+                        itemId -> getNextBooking(itemId)
+                ));
+    }
+
+    private ItemDto.BookingInfo toBookingInfo(Booking booking) {
+        return new ItemDto.BookingInfo(booking.getId(), booking.getBooker().getId());
     }
 }

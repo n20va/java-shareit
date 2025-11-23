@@ -3,6 +3,8 @@ package ru.practicum.shareit.item.dto;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+
+import java.util.List;
 import java.util.Objects;
 
 @Getter
@@ -14,6 +16,38 @@ public class ItemDto {
     private String description;
     private Boolean available;
     private Long requestId;
+    private BookingInfo lastBooking;
+    private BookingInfo nextBooking;
+    private List<CommentDto> comments;
+
+    @Getter
+    @Setter
+    @ToString
+    public static class BookingInfo {
+        private Long id;
+        private Long bookerId;
+
+        public BookingInfo() {
+        }
+
+        public BookingInfo(Long id, Long bookerId) {
+            this.id = id;
+            this.bookerId = bookerId;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            BookingInfo that = (BookingInfo) o;
+            return Objects.equals(id, that.id) && Objects.equals(bookerId, that.bookerId);
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(id, bookerId);
+        }
+    }
 
     public ItemDto() {
     }
