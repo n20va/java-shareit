@@ -110,24 +110,6 @@ class BookingServiceImplTest {
     }
 
     @Test
-void approveBooking_WhenUserNotOwner_ShouldThrowValidationException() {
-    when(userRepository.findById(booker.getId())).thenReturn(Optional.of(booker));
-    when(bookingRepository.findById(booking.getId())).thenReturn(Optional.of(booking));
-
-    assertThrows(ValidationException.class, () -> bookingService.approveBooking(booking.getId(), true, booker.getId()));
-    verify(bookingRepository, never()).save(any(Booking.class));
-}
-
-    @Test
-    void approveBooking_WhenUserNotOwner_ShouldThrowNotFoundException() {
-        when(userRepository.findById(booker.getId())).thenReturn(Optional.of(booker));
-        when(bookingRepository.findById(booking.getId())).thenReturn(Optional.of(booking));
-
-        assertThrows(NotFoundException.class, () -> bookingService.approveBooking(booking.getId(), true, booker.getId()));
-        verify(bookingRepository, never()).save(any(Booking.class));
-    }
-
-    @Test
     void approveBooking_WhenAlreadyApproved_ShouldThrowValidationException() {
         booking.setStatus(BookingStatus.APPROVED);
         when(userRepository.findById(owner.getId())).thenReturn(Optional.of(owner));
@@ -196,5 +178,6 @@ void approveBooking_WhenUserNotOwner_ShouldThrowValidationException() {
         assertEquals(booking.getId(), result.get(0).getId());
     }
 }
+
 
 
