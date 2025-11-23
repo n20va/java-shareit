@@ -110,17 +110,13 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void approveBooking_WithValidData_ShouldReturnApprovedBooking() {
-        when(userRepository.findById(owner.getId())).thenReturn(Optional.of(owner));
-        when(bookingRepository.findById(booking.getId())).thenReturn(Optional.of(booking));
-        when(bookingRepository.save(any(Booking.class))).thenReturn(booking);
+void approveBooking_WhenUserNotOwner_ShouldThrowValidationException() {
+    when(userRepository.findById(booker.getId())).thenReturn(Optional.of(booker));
+    when(bookingRepository.findById(booking.getId())).thenReturn(Optional.of(booking));
 
-        BookingResponseDto result = bookingService.approveBooking(booking.getId(), true, owner.getId());
-
-        assertNotNull(result);
-        assertEquals(BookingStatus.APPROVED, result.getStatus());
-        verify(bookingRepository, times(1)).save(booking);
-    }
+    assertThrows(ValidationException.class, () -> bookingService.approveBooking(booking.getId(), true, booker.getId()));
+    verify(bookingRepository, never()).save(any(Booking.class));
+}
 
     @Test
     void approveBooking_WhenUserNotOwner_ShouldThrowNotFoundException() {
@@ -200,4 +196,5 @@ class BookingServiceImplTest {
         assertEquals(booking.getId(), result.get(0).getId());
     }
 }
+
 
