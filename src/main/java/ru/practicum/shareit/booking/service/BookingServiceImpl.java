@@ -64,7 +64,7 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = getBookingByIdOrThrow(bookingId);
 
         if (!booking.getItem().getOwnerId().equals(ownerId)) {
-            throw new NotFoundException("Только владелец вещи может подтверждать бронирование");
+            throw new ValidationException("Только владелец вещи может подтверждать бронирование");
         }
 
         if (booking.getStatus() != BookingStatus.WAITING) {

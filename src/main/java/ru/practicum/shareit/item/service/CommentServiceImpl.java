@@ -36,8 +36,16 @@ public class CommentServiceImpl implements CommentService {
         User author = getUserByIdOrThrow(authorId);
         Item item = getItemByIdOrThrow(itemId);
 
-        // Проверка, что пользователь брал вещь в аренду и аренда завершена
-        validateUserCanComment(authorId, itemId);
+        boolean hasCompletedBooking = bookingRepository
+                .findByBookerIdAndItemIdAndEndBeforeAndStatus(authorId, itemId, LocalDateTime.now(), BookingStatus.APPROVED)
+                .stream()
+                .findFirst()
+                .isPresent();
+
+        if (!hasCompletedBooking) {
+            throw new ValidationException("Пользователь не может оставить комментарий, " +
+                    "так как не брал эту вещь в аренду или аренда еще не завершена");
+        }
 
         Comment comment = new Comment();
         comment.setText(createCommentDto.getText());
@@ -51,7 +59,6 @@ public class CommentServiceImpl implements CommentService {
 
     @Override
     public List<CommentDto> getCommentsByItemId(Long itemId) {
-        getItemByIdOrThrow(itemId);
         return commentRepository.findByItemId(itemId).stream()
                 .map(CommentMapper::toCommentDto)
                 .collect(Collectors.toList());
@@ -72,17 +79,5 @@ public class CommentServiceImpl implements CommentService {
     private Item getItemByIdOrThrow(Long itemId) {
         return itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Вещь с ID " + itemId + " не найдена"));
-    }
-
-    private void validateUserCanComment(Long userId, Long itemId) {
-        // Проверяем, что у пользователя есть завершенные бронирования этой вещи
-        List<ru.practicum.shareit.booking.Booking> completedBookings =
-                bookingRepository.findCompletedBookingsByBookerAndItem(
-                        userId, itemId, LocalDateTime.now(), BookingStatus.APPROVED);
-
-        if (completedBookings.isEmpty()) {
-            throw new ValidationException("Пользователь не может оставить комментарий, " +
-                    "так как не брал эту вещь в аренду или аренда еще не завершена");
-        }
     }
 }

@@ -83,14 +83,9 @@ public class ItemServiceImpl implements ItemService {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
-        if (itemIds.isEmpty()) {
-            return items.stream()
-                    .map(item -> ItemMapper.toItemDto(item, null, null, Collections.emptyList()))
-                    .collect(Collectors.toList());
-        }
-
         Map<Long, ItemDto.BookingInfo> lastBookings = getLastBookings(itemIds);
         Map<Long, ItemDto.BookingInfo> nextBookings = getNextBookings(itemIds);
+
         Map<Long, List<CommentDto>> commentsByItem = commentService.getCommentsByItemIds(itemIds)
                 .stream()
                 .collect(Collectors.groupingBy(CommentDto::getItemId));
