@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.repository.BookingRepository;
-import ru.practicum.shareit.booking.status.BookingStatus;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.item.dto.CommentDto;
@@ -36,13 +35,10 @@ public class CommentServiceImpl implements CommentService {
         User author = getUserByIdOrThrow(authorId);
         Item item = getItemByIdOrThrow(itemId);
 
-        boolean hasCompletedBooking = bookingRepository
-                .findByBookerIdAndItemIdAndEndBeforeAndStatus(authorId, itemId, LocalDateTime.now(), BookingStatus.APPROVED)
-                .stream()
-                .findFirst()
-                .isPresent();
+        List<Booking> completedBookings = bookingRepository.findCompletedBookingsByBookerAndItemApproved(
+                authorId, itemId, LocalDateTime.now());
 
-        if (!hasCompletedBooking) {
+        if (completedBookings.isEmpty()) {
             throw new ValidationException("Пользователь не может оставить комментарий, " +
                     "так как не брал эту вещь в аренду или аренда еще не завершена");
         }
