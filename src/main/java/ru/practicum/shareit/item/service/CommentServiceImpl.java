@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.repository.BookingRepository;
-import ru.practicum.shareit.booking.status.BookingStatus;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.item.dto.CommentDto;
@@ -78,3 +77,4 @@ public class CommentServiceImpl implements CommentService {
                 .orElseThrow(() -> new NotFoundException("Вещь с ID " + itemId + " не найдена"));
     }
 }
+
