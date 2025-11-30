@@ -35,7 +35,8 @@ public class CommentServiceImpl implements CommentService {
     public CommentDto createComment(Long itemId, CreateCommentDto createCommentDto, Long authorId) {
         User author = getUserByIdOrThrow(authorId);
         Item item = getItemByIdOrThrow(itemId);
-        List<Booking> completedBookings = bookingRepository.findCompletedBookingsByBookerAndItem(
+
+        List<Booking> completedBookings = bookingRepository.findCompletedBookingsByBookerAndItemApproved(
                 authorId, itemId, LocalDateTime.now());
 
         if (completedBookings.isEmpty()) {
@@ -49,8 +50,12 @@ public class CommentServiceImpl implements CommentService {
         comment.setAuthor(author);
         comment.setCreated(LocalDateTime.now());
 
-        Comment savedComment = commentRepository.save(comment);
-        return CommentMapper.toCommentDto(savedComment);
+        try {
+            Comment savedComment = commentRepository.save(comment);
+            return CommentMapper.toCommentDto(savedComment);
+        } catch (Exception e) {
+            throw new ValidationException("Ошибка при создании комментария: " + e.getMessage());
+        }
     }
 
     @Override
@@ -77,4 +82,3 @@ public class CommentServiceImpl implements CommentService {
                 .orElseThrow(() -> new NotFoundException("Вещь с ID " + itemId + " не найдена"));
     }
 }
-
