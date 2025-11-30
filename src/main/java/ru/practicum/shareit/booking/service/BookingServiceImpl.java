@@ -62,13 +62,10 @@ public class BookingServiceImpl implements BookingService {
     @Transactional
     public BookingResponseDto approveBooking(Long bookingId, Boolean approved, Long ownerId) {
     Booking booking = getBookingByIdOrThrow(bookingId);
-    
     if (!booking.getItem().getOwnerId().equals(ownerId)) {
         throw new ForbiddenException("Только владелец вещи может подтверждать бронирование");
     }
-    
     getUserByIdOrThrow(ownerId);
-    
     if (booking.getStatus() != BookingStatus.WAITING) {
         throw new ValidationException("Бронирование уже обработано");
     }
@@ -203,4 +200,5 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 }
+
 
