@@ -63,7 +63,6 @@ public class ItemServiceImpl implements ItemService {
         ItemDto.BookingInfo lastBooking = null;
         ItemDto.BookingInfo nextBooking = null;
         List<CommentDto> comments = commentService.getCommentsByItemId(itemId);
-
         if (userId != null && item.getOwnerId().equals(userId)) {
             lastBooking = getLastBooking(itemId);
             nextBooking = getNextBooking(itemId);
@@ -106,8 +105,22 @@ public class ItemServiceImpl implements ItemService {
             return List.of();
         }
 
-        return itemRepository.searchAvailableItems(text).stream()
-                .map(ItemMapper::toItemDto)
+        List<Item> items = itemRepository.searchAvailableItems(text);
+        List<Long> itemIds = items.stream()
+                .map(Item::getId)
+                .collect(Collectors.toList());
+
+        Map<Long, List<CommentDto>> commentsByItem = commentService.getCommentsByItemIds(itemIds)
+                .stream()
+                .collect(Collectors.groupingBy(CommentDto::getItemId));
+
+        return items.stream()
+                .map(item -> {
+                    List<CommentDto> comments = commentsByItem.getOrDefault(item.getId(), Collections.emptyList());
+                    ItemDto itemDto = ItemMapper.toItemDto(item);
+                    itemDto.setComments(comments);
+                    return itemDto;
+                })
                 .collect(Collectors.toList());
     }
 
