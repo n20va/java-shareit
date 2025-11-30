@@ -61,21 +61,22 @@ public class BookingServiceImpl implements BookingService {
     @Override
     @Transactional
     public BookingResponseDto approveBooking(Long bookingId, Boolean approved, Long ownerId) {
-        getUserByIdOrThrow(ownerId);
-        Booking booking = getBookingByIdOrThrow(bookingId);
-
-        if (!booking.getItem().getOwnerId().equals(ownerId)) {
-            throw new ForbiddenException("Только владелец вещи может подтверждать бронирование");
-        }
-
-        if (booking.getStatus() != BookingStatus.WAITING) {
-            throw new ValidationException("Бронирование уже обработано");
-        }
-
-        booking.setStatus(approved ? BookingStatus.APPROVED : BookingStatus.REJECTED);
-        Booking updatedBooking = bookingRepository.save(booking);
-        return BookingMapper.toBookingResponseDto(updatedBooking);
+    Booking booking = getBookingByIdOrThrow(bookingId);
+    
+    if (!booking.getItem().getOwnerId().equals(ownerId)) {
+        throw new ForbiddenException("Только владелец вещи может подтверждать бронирование");
     }
+    
+    getUserByIdOrThrow(ownerId);
+    
+    if (booking.getStatus() != BookingStatus.WAITING) {
+        throw new ValidationException("Бронирование уже обработано");
+    }
+
+    booking.setStatus(approved ? BookingStatus.APPROVED : BookingStatus.REJECTED);
+    Booking updatedBooking = bookingRepository.save(booking);
+    return BookingMapper.toBookingResponseDto(updatedBooking);
+}
 
     @Override
     public BookingResponseDto getBookingById(Long bookingId, Long userId) {
@@ -202,3 +203,4 @@ public class BookingServiceImpl implements BookingService {
         }
     }
 }
+
