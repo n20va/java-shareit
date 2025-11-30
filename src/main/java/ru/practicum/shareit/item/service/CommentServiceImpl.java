@@ -3,8 +3,9 @@ package ru.practicum.shareit.item.service;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.booking.Booking;
+import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.booking.status.BookingStatus;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.item.dto.CommentDto;
@@ -35,8 +36,7 @@ public class CommentServiceImpl implements CommentService {
     public CommentDto createComment(Long itemId, CreateCommentDto createCommentDto, Long authorId) {
         User author = getUserByIdOrThrow(authorId);
         Item item = getItemByIdOrThrow(itemId);
-
-        List<Booking> completedBookings = bookingRepository.findCompletedBookingsByBookerAndItemApproved(
+        List<Booking> completedBookings = bookingRepository.findCompletedBookingsByBookerAndItem(
                 authorId, itemId, LocalDateTime.now());
 
         if (completedBookings.isEmpty()) {
@@ -78,4 +78,3 @@ public class CommentServiceImpl implements CommentService {
                 .orElseThrow(() -> new NotFoundException("Вещь с ID " + itemId + " не найдена"));
     }
 }
-
