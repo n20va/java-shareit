@@ -62,7 +62,9 @@ public class ItemServiceImpl implements ItemService {
 
         ItemDto.BookingInfo lastBooking = null;
         ItemDto.BookingInfo nextBooking = null;
+        
         List<CommentDto> comments = commentService.getCommentsByItemId(itemId);
+
         if (userId != null && item.getOwnerId().equals(userId)) {
             lastBooking = getLastBooking(itemId);
             nextBooking = getNextBooking(itemId);
@@ -85,8 +87,8 @@ public class ItemServiceImpl implements ItemService {
         Map<Long, ItemDto.BookingInfo> lastBookings = getLastBookings(itemIds);
         Map<Long, ItemDto.BookingInfo> nextBookings = getNextBookings(itemIds);
 
-        Map<Long, List<CommentDto>> commentsByItem = commentService.getCommentsByItemIds(itemIds)
-                .stream()
+        List<CommentDto> allComments = commentService.getCommentsByItemIds(itemIds);
+        Map<Long, List<CommentDto>> commentsByItem = allComments.stream()
                 .collect(Collectors.groupingBy(CommentDto::getItemId));
 
         return items.stream()
@@ -110,16 +112,14 @@ public class ItemServiceImpl implements ItemService {
                 .map(Item::getId)
                 .collect(Collectors.toList());
 
-        Map<Long, List<CommentDto>> commentsByItem = commentService.getCommentsByItemIds(itemIds)
-                .stream()
+        List<CommentDto> allComments = commentService.getCommentsByItemIds(itemIds);
+        Map<Long, List<CommentDto>> commentsByItem = allComments.stream()
                 .collect(Collectors.groupingBy(CommentDto::getItemId));
 
         return items.stream()
                 .map(item -> {
                     List<CommentDto> comments = commentsByItem.getOrDefault(item.getId(), Collections.emptyList());
-                    ItemDto itemDto = ItemMapper.toItemDto(item);
-                    itemDto.setComments(comments);
-                    return itemDto;
+                    return ItemMapper.toItemDtoWithComments(item, comments);
                 })
                 .collect(Collectors.toList());
     }
