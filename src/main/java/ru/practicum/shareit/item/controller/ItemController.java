@@ -6,6 +6,8 @@ import jakarta.validation.constraints.PositiveOrZero;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.item.dto.CommentDto;
+import ru.practicum.shareit.item.dto.CreateCommentDto;
 import ru.practicum.shareit.item.dto.CreateItemDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.UpdateItemDto;
@@ -67,5 +69,14 @@ public class ItemController {
             @RequestHeader("X-Sharer-User-Id") Long ownerId
     ) {
         itemService.deleteItem(itemId, ownerId);
+    }
+
+    @PostMapping("/{itemId}/comment")
+    public CommentDto createComment(
+            @PathVariable Long itemId,
+            @Valid @RequestBody CreateCommentDto createCommentDto,
+            @RequestHeader("X-Sharer-User-Id") Long userId
+    ) {
+        return itemService.addComment(itemId, createCommentDto, userId);
     }
 }
