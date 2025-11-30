@@ -62,7 +62,6 @@ public class ItemServiceImpl implements ItemService {
 
         ItemDto.BookingInfo lastBooking = null;
         ItemDto.BookingInfo nextBooking = null;
-        
         List<CommentDto> comments = commentService.getCommentsByItemId(itemId);
 
         if (userId != null && item.getOwnerId().equals(userId)) {
@@ -192,3 +191,4 @@ public class ItemServiceImpl implements ItemService {
         return new ItemDto.BookingInfo(booking.getId(), booking.getBooker().getId());
     }
 }
+
