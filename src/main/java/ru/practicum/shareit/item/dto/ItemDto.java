@@ -1,83 +1,96 @@
-package ru.practicum.shareit.item.dto;
+package ru.practicum.shareit.item.mapper;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
+import org.springframework.stereotype.Component;
+import ru.practicum.shareit.item.dto.CommentDto;
+import ru.practicum.shareit.item.dto.CreateItemDto;
+import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.UpdateItemDto;
+import ru.practicum.shareit.item.model.Item;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
+import java.util.stream.Collectors;
 
-@Getter
-@Setter
-@ToString
-public class ItemDto {
-    private Long id;
-    private String name;
-    private String description;
-    private Boolean available;
-    private Long requestId;
-    private BookingInfo lastBooking;
-    private BookingInfo nextBooking;
-    private List<CommentDto> comments;
+@Component
+public class ItemMapper {
 
-    @Getter
-    @Setter
-    @ToString
-    public static class BookingInfo {
-        private Long id;
-        private Long bookerId;
-
-        public BookingInfo() {
-        }
-
-        public BookingInfo(Long id, Long bookerId) {
-            this.id = id;
-            this.bookerId = bookerId;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) return true;
-            if (o == null || getClass() != o.getClass()) return false;
-            BookingInfo that = (BookingInfo) o;
-            return Objects.equals(id, that.id) && Objects.equals(bookerId, that.bookerId);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(id, bookerId);
-        }
+    public static ItemDto toItemDto(Item item) {
+        return toItemDto(item, null, null, Collections.emptyList());
     }
 
-    public ItemDto() {
+    public static ItemDto toItemDto(Item item, ItemDto.BookingInfo lastBooking,
+                                    ItemDto.BookingInfo nextBooking, List<CommentDto> comments) {
+        ItemDto itemDto = new ItemDto(
+                item.getId(),
+                item.getName(),
+                item.getDescription(),
+                item.getAvailable(),
+                item.getRequestId()
+        );
+        itemDto.setLastBooking(lastBooking);
+        itemDto.setNextBooking(nextBooking);
+        itemDto.setComments(comments != null ? comments : Collections.emptyList());
+        return itemDto;
     }
 
-    public ItemDto(Long id, String name, String description, Boolean available, Long requestId) {
-        this.id = id;
-        this.name = name;
-        this.description = description;
-        this.available = available;
-        this.requestId = requestId;
+    public static ItemDto toItemDto(Item item, List<CommentDto> comments) {
+        return toItemDto(item, null, null, comments);
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
+    public static ItemDto toItemDtoWithComments(Item item, List<CommentDto> comments) {
+        ItemDto itemDto = toItemDto(item);
+        itemDto.setComments(comments != null ? comments : Collections.emptyList());
+        return itemDto;
+    }
+
+    public static Item toItemFromCreateDto(CreateItemDto createItemDto, Long ownerId) {
+        if (createItemDto == null) {
+            return null;
         }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        ItemDto itemDto = (ItemDto) o;
-        return Objects.equals(id, itemDto.id)
-                && Objects.equals(name, itemDto.name)
-                && Objects.equals(description, itemDto.description)
-                && Objects.equals(available, itemDto.available)
-                && Objects.equals(requestId, itemDto.requestId);
+        return new Item(
+                null,
+                createItemDto.getName(),
+                createItemDto.getDescription(),
+                createItemDto.getAvailable(),
+                ownerId,
+                createItemDto.getRequestId()
+        );
     }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, name, description, available, requestId);
+    public static Item updateItemFromDto(UpdateItemDto updateItemDto, Item item) {
+        if (updateItemDto == null || item == null) {
+            return item;
+        }
+
+        if (updateItemDto.getName() != null && !updateItemDto.getName().isBlank()) {
+            item.setName(updateItemDto.getName());
+        }
+
+        if (updateItemDto.getDescription() != null && !updateItemDto.getDescription().isBlank()) {
+            item.setDescription(updateItemDto.getDescription());
+        }
+
+        if (updateItemDto.getAvailable() != null) {
+            item.setAvailable(updateItemDto.getAvailable());
+        }
+
+        return item;
+    }
+
+    public static List<ItemDto> toItemDtoList(List<Item> items) {
+        return items.stream()
+                .map(ItemMapper::toItemDto)
+                .collect(Collectors.toList());
+    }
+
+    public static List<ItemDto> toItemDtoListWithComments(List<Item> items, List<CommentDto> comments) {
+        return items.stream()
+                .map(item -> {
+                    List<CommentDto> itemComments = comments.stream()
+                            .filter(comment -> comment.getItemId().equals(item.getId()))
+                            .collect(Collectors.toList());
+                    return toItemDtoWithComments(item, itemComments);
+                })
+                .collect(Collectors.toList());
     }
 }
