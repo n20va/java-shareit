@@ -29,12 +29,19 @@ public class ItemMapper {
         );
         itemDto.setLastBooking(lastBooking);
         itemDto.setNextBooking(nextBooking);
-        itemDto.setComments(comments);
+        itemDto.setComments(comments != null ? comments : Collections.emptyList());
         return itemDto;
     }
 
     public static ItemDto toItemDto(Item item, List<CommentDto> comments) {
         return toItemDto(item, null, null, comments);
+    }
+
+    // Новый метод, который устанавливает комментарии в базовый DTO
+    public static ItemDto toItemDtoWithComments(Item item, List<CommentDto> comments) {
+        ItemDto itemDto = toItemDto(item);
+        itemDto.setComments(comments != null ? comments : Collections.emptyList());
+        return itemDto;
     }
 
     public static Item toItemFromCreateDto(CreateItemDto createItemDto, Long ownerId) {
@@ -74,6 +81,17 @@ public class ItemMapper {
     public static List<ItemDto> toItemDtoList(List<Item> items) {
         return items.stream()
                 .map(ItemMapper::toItemDto)
+                .collect(Collectors.toList());
+    }
+
+    public static List<ItemDto> toItemDtoListWithComments(List<Item> items, List<CommentDto> comments) {
+        return items.stream()
+                .map(item -> {
+                    List<CommentDto> itemComments = comments.stream()
+                            .filter(comment -> comment.getItemId().equals(item.getId()))
+                            .collect(Collectors.toList());
+                    return toItemDtoWithComments(item, itemComments);
+                })
                 .collect(Collectors.toList());
     }
 }
