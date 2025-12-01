@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -26,6 +27,8 @@ public class ItemDto {
     public static class BookingInfo {
         private Long id;
         private Long bookerId;
+        private LocalDateTime start;
+        private LocalDateTime end;
 
         public BookingInfo() {
         }
@@ -35,17 +38,27 @@ public class ItemDto {
             this.bookerId = bookerId;
         }
 
+        public BookingInfo(Long id, Long bookerId, LocalDateTime start, LocalDateTime end) {
+            this.id = id;
+            this.bookerId = bookerId;
+            this.start = start;
+            this.end = end;
+        }
+
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             BookingInfo that = (BookingInfo) o;
-            return Objects.equals(id, that.id) && Objects.equals(bookerId, that.bookerId);
+            return Objects.equals(id, that.id) && 
+                   Objects.equals(bookerId, that.bookerId) &&
+                   Objects.equals(start, that.start) &&
+                   Objects.equals(end, that.end);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(id, bookerId);
+            return Objects.hash(id, bookerId, start, end);
         }
     }
 
