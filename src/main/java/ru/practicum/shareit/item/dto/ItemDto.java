@@ -50,7 +50,7 @@ public class ItemDto {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             BookingInfo that = (BookingInfo) o;
-            return Objects.equals(id, that.id) && 
+            return Objects.equals(id, that.id) &&
                    Objects.equals(bookerId, that.bookerId) &&
                    Objects.equals(start, that.start) &&
                    Objects.equals(end, that.end);
@@ -94,3 +94,4 @@ public class ItemDto {
         return Objects.hash(id, name, description, available, requestId);
     }
 }
+
