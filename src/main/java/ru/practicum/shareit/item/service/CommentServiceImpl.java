@@ -44,30 +44,24 @@ public class CommentServiceImpl implements CommentService {
                     "так как не брал эту вещь в аренду или аренда еще не завершена");
         }
 
-        Comment comment = new Comment();
-        comment.setText(createCommentDto.getText());
-        comment.setItem(item);
-        comment.setAuthor(author);
-        comment.setCreated(LocalDateTime.now());
-
-        try {
-            Comment savedComment = commentRepository.save(comment);
-            return CommentMapper.toCommentDto(savedComment);
-        } catch (Exception e) {
-            throw new ValidationException("Ошибка при создании комментария: " + e.getMessage());
-        }
+        Comment comment = CommentMapper.toComment(createCommentDto, item, author);
+        Comment savedComment = commentRepository.save(comment);
+        return CommentMapper.toCommentDto(savedComment);
     }
 
     @Override
     public List<CommentDto> getCommentsByItemId(Long itemId) {
-        return commentRepository.findByItemId(itemId).stream()
+        return commentRepository.findByItemIdOrderByCreatedDesc(itemId).stream()
                 .map(CommentMapper::toCommentDto)
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<CommentDto> getCommentsByItemIds(List<Long> itemIds) {
-        return commentRepository.findByItemIdIn(itemIds).stream()
+        if (itemIds == null || itemIds.isEmpty()) {
+            return List.of();
+        }
+        return commentRepository.findByItemIdInOrderByCreatedDesc(itemIds).stream()
                 .map(CommentMapper::toCommentDto)
                 .collect(Collectors.toList());
     }
