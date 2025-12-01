@@ -83,8 +83,9 @@ public class ItemServiceImpl implements ItemService {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
-        Map<Long, ItemDto.BookingInfo> lastBookings = getLastBookings(itemIds);
-        Map<Long, ItemDto.BookingInfo> nextBookings = getNextBookings(itemIds);
+        // Используем оптимизированные методы для получения всех бронирований за один запрос
+        Map<Long, ItemDto.BookingInfo> lastBookings = getLastBookingsForItems(itemIds);
+        Map<Long, ItemDto.BookingInfo> nextBookings = getNextBookingsForItems(itemIds);
 
         List<CommentDto> allComments = commentService.getCommentsByItemIds(itemIds);
         Map<Long, List<CommentDto>> commentsByItem = allComments.stream()
@@ -164,31 +165,49 @@ public class ItemServiceImpl implements ItemService {
                 .orElse(null);
     }
 
-    private Map<Long, ItemDto.BookingInfo> getLastBookings(List<Long> itemIds) {
-        Map<Long, ItemDto.BookingInfo> result = new HashMap<>();
-        for (Long itemId : itemIds) {
-            if (itemId != null) {
-                result.put(itemId, getLastBooking(itemId));
-            }
+    private Map<Long, ItemDto.BookingInfo> getLastBookingsForItems(List<Long> itemIds) {
+        if (itemIds.isEmpty()) {
+            return Collections.emptyMap();
         }
-        return result;
+        
+        LocalDateTime now = LocalDateTime.now();
+        List<Booking> lastBookings = bookingRepository.findLastBookingsForItems(
+                itemIds, now, BookingStatus.APPROVED
+        );
+        
+        return lastBookings.stream()
+                .collect(Collectors.toMap(
+                        booking -> booking.getItem().getId(),
+                        this::toBookingInfo
+                ));
     }
 
-    private Map<Long, ItemDto.BookingInfo> getNextBookings(List<Long> itemIds) {
-        Map<Long, ItemDto.BookingInfo> result = new HashMap<>();
-        for (Long itemId : itemIds) {
-            if (itemId != null) {
-                result.put(itemId, getNextBooking(itemId));
-            }
+    private Map<Long, ItemDto.BookingInfo> getNextBookingsForItems(List<Long> itemIds) {
+        if (itemIds.isEmpty()) {
+            return Collections.emptyMap();
         }
-        return result;
+        
+        LocalDateTime now = LocalDateTime.now();
+        List<Booking> nextBookings = bookingRepository.findNextBookingsForItems(
+                itemIds, now, BookingStatus.APPROVED
+        );
+        
+        return nextBookings.stream()
+                .collect(Collectors.toMap(
+                        booking -> booking.getItem().getId(),
+                        this::toBookingInfo
+                ));
     }
 
     private ItemDto.BookingInfo toBookingInfo(Booking booking) {
         if (booking == null || booking.getBooker() == null) {
             return null;
         }
-        return new ItemDto.BookingInfo(booking.getId(), booking.getBooker().getId());
+        return new ItemDto.BookingInfo(
+            booking.getId(), 
+            booking.getBooker().getId(),
+            booking.getStart(),
+            booking.getEnd()
+        );
     }
 }
-
