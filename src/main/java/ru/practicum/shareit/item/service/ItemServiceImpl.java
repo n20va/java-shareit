@@ -169,12 +169,12 @@ public class ItemServiceImpl implements ItemService {
         if (itemIds.isEmpty()) {
             return Collections.emptyMap();
         }
-    
+
         LocalDateTime now = LocalDateTime.now();
         List<Booking> lastBookings = bookingRepository.findLastBookingsForItems(
                 itemIds, now, BookingStatus.APPROVED
         );
-    
+
         return lastBookings.stream()
                 .collect(Collectors.toMap(
                         booking -> booking.getItem().getId(),
@@ -186,12 +186,12 @@ public class ItemServiceImpl implements ItemService {
         if (itemIds.isEmpty()) {
             return Collections.emptyMap();
         }
-    
+
         LocalDateTime now = LocalDateTime.now();
         List<Booking> nextBookings = bookingRepository.findNextBookingsForItems(
                 itemIds, now, BookingStatus.APPROVED
         );
-    
+
         return nextBookings.stream()
                 .collect(Collectors.toMap(
                         booking -> booking.getItem().getId(),
@@ -211,4 +211,5 @@ public class ItemServiceImpl implements ItemService {
         );
     }
 }
+
 
