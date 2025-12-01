@@ -49,11 +49,7 @@ public class BookingServiceImpl implements BookingService {
 
         validateBookingDates(bookingDto.getStart(), bookingDto.getEnd());
 
-        Booking booking = BookingMapper.toBooking(bookingDto);
-        booking.setItem(item);
-        booking.setBooker(booker);
-        booking.setStatus(BookingStatus.WAITING);
-
+        Booking booking = BookingMapper.toBooking(bookingDto, item, booker);
         Booking savedBooking = bookingRepository.save(booking);
         return BookingMapper.toBookingResponseDto(savedBooking);
     }
@@ -186,19 +182,14 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private void validateBookingDates(LocalDateTime start, LocalDateTime end) {
-        if (start == null || end == null) {
-            throw new ValidationException("Даты начала и окончания бронирования обязательны");
-        }
         if (start.isAfter(end)) {
             throw new ValidationException("Дата начала бронирования не может быть позже даты окончания");
         }
         if (start.isEqual(end)) {
             throw new ValidationException("Даты начала и окончания бронирования не могут совпадать");
         }
-        if (start.isBefore(LocalDateTime.now())) {
-            throw new ValidationException("Дата начала бронирования не может быть в прошлом");
-        }
     }
 }
+
 
 
