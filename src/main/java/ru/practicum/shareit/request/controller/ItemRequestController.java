@@ -1,12 +1,53 @@
 package ru.practicum.shareit.request.controller;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.request.dto.CreateItemRequestDto;
+import ru.practicum.shareit.request.dto.ItemRequestDto;
+import ru.practicum.shareit.request.service.ItemRequestService;
 
-/**
- * TODO Sprint add-item-requests.
- */
+import java.util.List;
+
 @RestController
 @RequestMapping(path = "/requests")
+@RequiredArgsConstructor
 public class ItemRequestController {
+    private final ItemRequestService requestService;
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public ItemRequestDto createRequest(
+            @Valid @RequestBody CreateItemRequestDto createItemRequestDto,
+            @RequestHeader("X-Sharer-User-Id") Long requesterId
+    ) {
+        return requestService.createRequest(createItemRequestDto, requesterId);
+    }
+
+    @GetMapping
+    public List<ItemRequestDto> getUserRequests(
+            @RequestHeader("X-Sharer-User-Id") Long requesterId
+    ) {
+        return requestService.getUserRequests(requesterId);
+    }
+
+    @GetMapping("/all")
+    public List<ItemRequestDto> getAllRequests(
+            @RequestHeader("X-Sharer-User-Id") Long userId,
+            @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
+            @RequestParam(defaultValue = "10") @Positive Integer size
+    ) {
+        return requestService.getAllRequests(userId, from, size);
+    }
+
+    @GetMapping("/{requestId}")
+    public ItemRequestDto getRequestById(
+            @PathVariable Long requestId,
+            @RequestHeader("X-Sharer-User-Id") Long userId
+    ) {
+        return requestService.getRequestById(requestId, userId);
+    }
 }

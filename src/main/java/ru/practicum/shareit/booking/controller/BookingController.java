@@ -1,12 +1,67 @@
 package ru.practicum.shareit.booking.controller;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.booking.dto.BookingResponseDto;
+import ru.practicum.shareit.booking.dto.BookingState;
+import ru.practicum.shareit.booking.service.BookingService;
 
-/**
- * TODO Sprint add-bookings.
- */
+import java.util.List;
+
 @RestController
 @RequestMapping(path = "/bookings")
+@RequiredArgsConstructor
 public class BookingController {
+    private final BookingService bookingService;
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public BookingResponseDto createBooking(
+            @Valid @RequestBody BookingDto bookingDto,
+            @RequestHeader("X-Sharer-User-Id") Long bookerId
+    ) {
+        return bookingService.createBooking(bookingDto, bookerId);
+    }
+
+    @PatchMapping("/{bookingId}")
+    public BookingResponseDto approveBooking(
+            @PathVariable Long bookingId,
+            @RequestParam Boolean approved,
+            @RequestHeader("X-Sharer-User-Id") Long ownerId
+    ) {
+        return bookingService.approveBooking(bookingId, approved, ownerId);
+    }
+
+    @GetMapping("/{bookingId}")
+    public BookingResponseDto getBooking(
+            @PathVariable Long bookingId,
+            @RequestHeader("X-Sharer-User-Id") Long userId
+    ) {
+        return bookingService.getBookingById(bookingId, userId);
+    }
+
+    @GetMapping
+    public List<BookingResponseDto> getUserBookings(
+            @RequestParam(defaultValue = "ALL") BookingState state,
+            @RequestHeader("X-Sharer-User-Id") Long userId,
+            @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
+            @RequestParam(defaultValue = "10") @Positive Integer size
+    ) {
+        return bookingService.getUserBookings(state, userId, from, size);
+    }
+
+    @GetMapping("/owner")
+    public List<BookingResponseDto> getOwnerBookings(
+            @RequestParam(defaultValue = "ALL") BookingState state,
+            @RequestHeader("X-Sharer-User-Id") Long ownerId,
+            @RequestParam(defaultValue = "0") @PositiveOrZero Integer from,
+            @RequestParam(defaultValue = "10") @Positive Integer size
+    ) {
+        return bookingService.getOwnerBookings(state, ownerId, from, size);
+    }
 }

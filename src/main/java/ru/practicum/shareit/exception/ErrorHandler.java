@@ -35,6 +35,13 @@ public class ErrorHandler {
         return new ErrorResponse("Конфликт данных", e.getMessage());
     }
 
+    @ExceptionHandler(ForbiddenException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ErrorResponse handleForbiddenException(final ForbiddenException e) {
+        log.warn("Доступ запрещен: {}", e.getMessage());
+        return new ErrorResponse("Доступ запрещен", e.getMessage());
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleMethodArgumentNotValidException(final MethodArgumentNotValidException e) {

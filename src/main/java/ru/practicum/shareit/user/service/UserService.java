@@ -2,6 +2,7 @@ package ru.practicum.shareit.user.service;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.exception.ConflictException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.dto.CreateUserDto;
@@ -16,9 +17,11 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class UserService {
     private final UserRepository userRepository;
 
+    @Transactional
     public UserDto createUser(CreateUserDto createUserDto) {
         userRepository.findByEmail(createUserDto.getEmail())
                 .ifPresent(user -> {
@@ -31,6 +34,7 @@ public class UserService {
         return UserMapper.toUserDto(savedUser);
     }
 
+    @Transactional
     public UserDto updateUser(Long userId, UpdateUserDto updateUserDto) {
         User existingUser = getUserByIdOrThrow(userId);
 
@@ -43,8 +47,8 @@ public class UserService {
                     });
         }
 
-        User updatedUser = UserMapper.updateUserFromDto(updateUserDto, existingUser);
-        User savedUser = userRepository.update(updatedUser);
+        UserMapper.updateUserFromDto(updateUserDto, existingUser);
+        User savedUser = userRepository.save(existingUser);
         return UserMapper.toUserDto(savedUser);
     }
 
@@ -59,6 +63,7 @@ public class UserService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
     public void deleteUser(Long userId) {
         if (!userRepository.existsById(userId)) {
             throw new NotFoundException("Пользователь с ID " + userId + " не найден");

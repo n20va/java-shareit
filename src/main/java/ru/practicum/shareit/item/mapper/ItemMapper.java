@@ -1,25 +1,47 @@
 package ru.practicum.shareit.item.mapper;
 
 import org.springframework.stereotype.Component;
-import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.CreateItemDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.UpdateItemDto;
+import ru.practicum.shareit.item.model.Item;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class ItemMapper {
 
     public static ItemDto toItemDto(Item item) {
-        if (item == null) {
-            return null;
-        }
-        return new ItemDto(
+        return toItemDto(item, null, null, Collections.emptyList());
+    }
+
+    public static ItemDto toItemDto(Item item, ItemDto.BookingInfo lastBooking,
+                                    ItemDto.BookingInfo nextBooking, List<CommentDto> comments) {
+        ItemDto itemDto = new ItemDto(
                 item.getId(),
                 item.getName(),
                 item.getDescription(),
                 item.getAvailable(),
                 item.getRequestId()
         );
+        itemDto.setLastBooking(lastBooking);
+        itemDto.setNextBooking(nextBooking);
+        itemDto.setComments(comments != null ? comments : Collections.emptyList());
+        return itemDto;
+    }
+
+    public static ItemDto toItemDto(Item item, List<CommentDto> comments) {
+        return toItemDto(item, null, null, comments);
+    }
+
+    // Новый метод, который устанавливает комментарии в базовый DTO
+    public static ItemDto toItemDtoWithComments(Item item, List<CommentDto> comments) {
+        ItemDto itemDto = toItemDto(item);
+        itemDto.setComments(comments != null ? comments : Collections.emptyList());
+        return itemDto;
     }
 
     public static Item toItemFromCreateDto(CreateItemDto createItemDto, Long ownerId) {
@@ -54,5 +76,22 @@ public class ItemMapper {
         }
 
         return item;
+    }
+
+    public static List<ItemDto> toItemDtoList(List<Item> items) {
+        return items.stream()
+                .map(ItemMapper::toItemDto)
+                .collect(Collectors.toList());
+    }
+
+    public static List<ItemDto> toItemDtoListWithComments(List<Item> items, List<CommentDto> comments) {
+        return items.stream()
+                .map(item -> {
+                    List<CommentDto> itemComments = comments.stream()
+                            .filter(comment -> comment.getItemId().equals(item.getId()))
+                            .collect(Collectors.toList());
+                    return toItemDtoWithComments(item, itemComments);
+                })
+                .collect(Collectors.toList());
     }
 }
