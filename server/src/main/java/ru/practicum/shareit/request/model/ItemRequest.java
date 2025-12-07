@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
 import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.item.model.Item;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -57,4 +58,5 @@ public class ItemRequest {
     public int hashCode() {
         return Objects.hash(id);
     }
+
 }
