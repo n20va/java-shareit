@@ -1,107 +1,84 @@
 package ru.practicum.shareit.item.service;
 
-import org.springframework.stereotype.Service;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.CreateItemDto;
 import ru.practicum.shareit.item.dto.UpdateItemDto;
-import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.mapper.ItemMapper;
-import ru.practicum.shareit.user.model.User;
-import ru.practicum.shareit.user.repository.UserRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.item.repository.CommentRepository;
+import ru.practicum.shareit.item.dto.CommentDto;
 
+import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.Optional;
 
-@Service
 public class ItemServiceImpl implements ItemService {
 
     private final ItemRepository itemRepository;
-    private final UserRepository userRepository;
     private final CommentRepository commentRepository;
+    private final ItemMapper itemMapper;
 
     public ItemServiceImpl(ItemRepository itemRepository,
-                           UserRepository userRepository,
-                           CommentRepository commentRepository) {
+                           CommentRepository commentRepository,
+                           ItemMapper itemMapper) {
         this.itemRepository = itemRepository;
-        this.userRepository = userRepository;
         this.commentRepository = commentRepository;
+        this.itemMapper = itemMapper;
     }
 
     @Override
-    public ItemDto createItem(Long ownerId, CreateItemDto dto) {
-        User owner = userRepository.findById(ownerId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-
-        Item item = ItemMapper.toItemFromCreateDto(dto, ownerId);
-        item.setOwner(owner);
-
-        Item savedItem = itemRepository.save(item);
-        return ItemMapper.toItemDto(savedItem, List.of());
+    public Item createItem(Long userId, Item item) {
+        item.setOwnerId(userId);
+        return itemRepository.save(item);
     }
 
     @Override
-    public ItemDto updateItem(Long ownerId, Long itemId, UpdateItemDto dto) {
-        Item existingItem = itemRepository.findById(itemId)
-                .orElseThrow(() -> new RuntimeException("Item not found"));
-
-        if (!existingItem.getOwner().getId().equals(ownerId)) {
-            throw new RuntimeException("You are not the owner of this item");
+    public Item updateItem(Long userId, Item item) {
+        Item existing = itemRepository.findById(item.getId());
+        if (existing == null || !existing.getOwnerId().equals(userId)) {
+            throw new RuntimeException("Нет доступа к изменению предмета");
         }
-
-        ItemMapper.updateItemFromDto(dto, existingItem);
-        Item savedItem = itemRepository.save(existingItem);
-
-        List<CommentDto> comments = commentRepository.findByItemId(savedItem.getId())
-                .stream().map(comment -> {
-                    CommentDto c = new CommentDto();
-                    c.setId(comment.getId());
-                    c.setText(comment.getText());
-                    c.setAuthorName(comment.getAuthor().getName());
-                    c.setCreated(comment.getCreated());
-                    return c;
-                }).collect(Collectors.toList());
-
-        return ItemMapper.toItemDto(savedItem, comments);
+        existing.setName(item.getName());
+        existing.setDescription(item.getDescription());
+        existing.setAvailable(item.getAvailable());
+        return itemRepository.save(existing);
     }
 
     @Override
-    public ItemDto getItem(Long itemId) {
-        Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new RuntimeException("Item not found"));
-
-        List<CommentDto> comments = commentRepository.findByItemId(item.getId())
-                .stream().map(comment -> {
-                    CommentDto c = new CommentDto();
-                    c.setId(comment.getId());
-                    c.setText(comment.getText());
-                    c.setAuthorName(comment.getAuthor().getName());
-                    c.setCreated(comment.getCreated());
-                    return c;
-                }).collect(Collectors.toList());
-
-        return ItemMapper.toItemDto(item, comments);
+    public Item getItemById(Long itemId, Long userId) {
+        Item item = itemRepository.findById(itemId);
+        return item;
     }
 
     @Override
-    public List<ItemDto> getItemsByOwner(Long ownerId) {
-        List<Item> items = itemRepository.findByOwnerId(ownerId);
-
-        return items.stream().map(item -> {
-            List<CommentDto> comments = commentRepository.findByItemId(item.getId())
-                    .stream().map(comment -> {
-                        CommentDto c = new CommentDto();
-                        c.setId(comment.getId());
-                        c.setText(comment.getText());
-                        c.setAuthorName(comment.getAuthor().getName());
-                        c.setCreated(comment.getCreated());
-                        return c;
-                    }).collect(Collectors.toList());
-
-            return ItemMapper.toItemDto(item, comments);
-        }).collect(Collectors.toList());
+    public List<Item> getItemsByUser(Long userId) {
+        return itemRepository.findByOwnerId(userId);
     }
+
+    @Override
+    public List<Item> searchItems(String text) {
+        if (text == null || text.isBlank()) {
+            return Collections.emptyList();
+        }
+        return itemRepository.search(text);
+    }
+
+    @Override
+    public List<Item> getItemsByRequestId(Long requestId) {
+        return itemRepository.findByRequestId(requestId);
+    }
+    public CommentDto addComment(Long userId, Long itemId, CommentDto commentDto) {
+        Item item = itemRepository.findById(itemId);
+        if (item == null) {
+            throw new RuntimeException("Item не найден");
+        }
+        commentDto.setItemId(itemId);
+        commentDto.setAuthorId(userId);
+        return commentRepository.save(commentDto);
+    }
+
+    public List<CommentDto> getComments(Long itemId) {
+        return commentRepository.findByItemId(itemId);
+    }
+
 }
