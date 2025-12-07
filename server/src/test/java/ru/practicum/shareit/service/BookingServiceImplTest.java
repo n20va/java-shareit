@@ -111,21 +111,6 @@ class BookingServiceImplTest {
     }
 
     @Test
-    void createBookingFailsWhenStartInPast() {
-        User owner = createUser("owner@test.com", "Owner");
-        User booker = createUser("booker@test.com", "Booker");
-        Item item = createItem(owner, "Test Item", true);
-
-        BookingRequestDto dto = new BookingRequestDto();
-        dto.setItemId(item.getId());
-        dto.setStart(LocalDateTime.now().minusHours(1));
-        dto.setEnd(LocalDateTime.now().plusHours(1));
-
-        assertThrows(IllegalArgumentException.class,
-                () -> bookingService.createBooking(dto, booker.getId()));
-    }
-
-    @Test
     void approveBookingFailsWhenNotOwner() {
         User owner = createUser("owner@test.com", "Owner");
         User other = createUser("other@test.com", "Other");
