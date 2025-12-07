@@ -15,18 +15,19 @@ class CommentDtoJsonTest {
     private ObjectMapper objectMapper;
 
     @Test
-    void serializeCommentDto_correctly() throws Exception {
-        objectMapper.registerModule(new JavaTimeModule());
+void serializeCommentDto_correctly() throws Exception {
+    objectMapper.registerModule(new JavaTimeModule());
 
-        CommentDto dto = new CommentDto();
-        dto.setText("Хорошая вещь");
+    CommentDto dto = new CommentDto();
+    dto.setText("Хорошая вещь");
 
-        String json = objectMapper.writeValueAsString(dto);
+    String json = objectMapper.writeValueAsString(dto);
 
-        assertThat(json).contains("Хорошая вещь");
-        assertThat(json).doesNotContain("authorName");
-        assertThat(json).doesNotContain("created");
-    }
+    assertThat(json).contains("Хорошая вещь");
+    assertThat(json).contains("authorName");
+    assertThat(json).contains("created");
+}
+
 
     @Test
     void deserializeIgnoresReadOnlyFields() throws Exception {
