@@ -36,8 +36,6 @@ public class ItemMapper {
         return toItemDto(item, null, null, comments);
     }
 
-add-item-requests-and-gateway
-
     public static ItemDto toItemDtoWithComments(Item item, List<CommentDto> comments) {
         ItemDto itemDto = toItemDto(item);
         itemDto.setComments(comments != null ? comments : Collections.emptyList());
@@ -96,4 +94,5 @@ add-item-requests-and-gateway
     }
 
 }
+
 
