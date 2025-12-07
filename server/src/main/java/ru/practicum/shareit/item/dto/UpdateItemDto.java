@@ -5,6 +5,8 @@ public class UpdateItemDto {
     private String description;
     private Boolean available;
 
+    public UpdateItemDto() {}
+
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
