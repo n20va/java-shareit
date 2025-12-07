@@ -31,7 +31,7 @@ class ItemControllerTest {
     @Test
     void createItem_withEmptyName_returnsBadRequest() throws Exception {
         ItemDto requestDto = new ItemDto();
-        requestDto.setName("");  // пустое имя
+        requestDto.setName("");
         requestDto.setDescription("Valid Description");
         requestDto.setAvailable(true);
 
@@ -45,7 +45,7 @@ class ItemControllerTest {
     @Test
     void createItem_withNullName_returnsBadRequest() throws Exception {
         ItemDto requestDto = new ItemDto();
-        requestDto.setName(null);  // null имя
+        requestDto.setName(null);
         requestDto.setDescription("Valid Description");
         requestDto.setAvailable(true);
 
@@ -60,7 +60,7 @@ class ItemControllerTest {
     void createItem_withNullDescription_returnsBadRequest() throws Exception {
         ItemDto requestDto = new ItemDto();
         requestDto.setName("Valid Name");
-        requestDto.setDescription(null);  // null описание
+        requestDto.setDescription(null);
         requestDto.setAvailable(true);
 
         mockMvc.perform(post("/items")
@@ -75,7 +75,7 @@ class ItemControllerTest {
         ItemDto requestDto = new ItemDto();
         requestDto.setName("Valid Name");
         requestDto.setDescription("Valid Description");
-        requestDto.setAvailable(null);  // null available
+        requestDto.setAvailable(null);
 
         mockMvc.perform(post("/items")
                         .header("X-Sharer-User-Id", 1L)
