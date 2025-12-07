@@ -3,12 +3,15 @@ package ru.practicum.shareit.item.mapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.CommentDto;
+import ru.practicum.shareit.item.dto.CreateItemDto;
+import ru.practicum.shareit.item.dto.UpdateItemDto;
 
 import java.util.List;
 
 public class ItemMapper {
 
     public static ItemDto toItemDto(Item item, List<CommentDto> comments) {
+        if (item == null) return null;
         ItemDto dto = new ItemDto();
         dto.setId(item.getId());
         dto.setName(item.getName());
@@ -20,6 +23,7 @@ public class ItemMapper {
     }
 
     public static Item toItemFromCreateDto(CreateItemDto dto, Long ownerId) {
+        if (dto == null) return null;
         Item item = new Item();
         item.setName(dto.getName());
         item.setDescription(dto.getDescription());
