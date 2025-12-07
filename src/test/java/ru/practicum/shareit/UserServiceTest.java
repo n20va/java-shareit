@@ -7,6 +7,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import ru.practicum.shareit.exception.ConflictException;
 import ru.practicum.shareit.user.dto.CreateUserDto;
+import ru.practicum.shareit.user.dto.UpdateUserDto;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
@@ -18,6 +19,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -59,6 +61,21 @@ class UserServiceTest {
 
         assertThrows(ConflictException.class, () -> userService.createUser(createUserDto));
         verify(userRepository, never()).save(any(User.class));
+    }
+
+    @Test
+    void updateUser_WithValidData_ShouldReturnUpdatedUserDto() {
+        User existingUser = new User(1L, "Old Name", "old@example.com");
+        UpdateUserDto updateUserDto = new UpdateUserDto("New Name", "new@example.com");
+
+        when(userRepository.findById(anyLong())).thenReturn(Optional.of(existingUser));
+        when(userRepository.findByEmail(anyString())).thenReturn(Optional.empty());
+        when(userRepository.save(any(User.class))).thenReturn(existingUser);
+
+        UserDto result = userService.updateUser(1L, updateUserDto);
+
+        assertNotNull(result);
+        verify(userRepository, times(1)).save(any(User.class));
     }
 
     @Test
