@@ -136,9 +136,6 @@ public class BookingServiceImpl implements BookingService {
         if (!dto.getStart().isBefore(dto.getEnd())) {
             throw new IllegalArgumentException("Некорректный интервал");
         }
-        if (dto.getStart().isBefore(LocalDateTime.now())) {
-            throw new IllegalArgumentException("Начало не может быть в прошлом");
-        }
     }
 
     public Booking findLastBooking(Long itemId) {
