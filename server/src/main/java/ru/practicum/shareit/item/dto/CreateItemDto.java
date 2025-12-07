@@ -1,12 +1,11 @@
 package ru.practicum.shareit.item.dto;
 
 public class CreateItemDto {
+
     private String name;
     private String description;
     private Boolean available;
     private Long requestId;
-
-    public CreateItemDto() {}
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
@@ -19,4 +18,5 @@ public class CreateItemDto {
 
     public Long getRequestId() { return requestId; }
     public void setRequestId(Long requestId) { this.requestId = requestId; }
+
 }
