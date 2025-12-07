@@ -6,6 +6,8 @@ public class CreateItemDto {
     private Boolean available;
     private Long requestId;
 
+    public CreateItemDto() {}
+
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
