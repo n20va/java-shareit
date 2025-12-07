@@ -1,23 +1,19 @@
 package ru.practicum.shareit.booking.mapper;
 
-import org.springframework.stereotype.Component;
-import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.dto.BookingDto;
 import ru.practicum.shareit.booking.dto.BookingResponseDto;
-import ru.practicum.shareit.booking.status.BookingStatus;
+import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 
-@Component
 public class BookingMapper {
 
-    public static Booking toBooking(BookingDto bookingDto, Item item, User booker) {
+    public static Booking toBooking(BookingDto dto, Item item, User booker) {
         Booking booking = new Booking();
-        booking.setStart(bookingDto.getStart());
-        booking.setEnd(bookingDto.getEnd());
         booking.setItem(item);
         booking.setBooker(booker);
-        booking.setStatus(BookingStatus.WAITING);
+        booking.setStart(dto.getStart());
+        booking.setEnd(dto.getEnd());
         return booking;
     }
 
@@ -33,10 +29,13 @@ public class BookingMapper {
         bookerDto.setName(booking.getBooker().getName());
         dto.setBooker(bookerDto);
 
-        BookingResponseDto.ItemDto itemDto = new BookingResponseDto.ItemDto();
-        itemDto.setId(booking.getItem().getId());
-        itemDto.setName(booking.getItem().getName());
-        dto.setItem(itemDto);
+        dto.setItem(new ru.practicum.shareit.item.dto.ItemDto() {{
+            setId(booking.getItem().getId());
+            setName(booking.getItem().getName());
+            setDescription(booking.getItem().getDescription());
+            setAvailable(booking.getItem().getAvailable());
+            setRequestId(booking.getItem().getRequestId());
+        }});
 
         return dto;
     }
