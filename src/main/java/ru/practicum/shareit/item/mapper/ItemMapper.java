@@ -1,7 +1,9 @@
 package ru.practicum.shareit.item.mapper;
 
 import org.springframework.stereotype.Component;
+
 import ru.practicum.shareit.item.dto.*;
+
 import ru.practicum.shareit.item.model.Item;
 
 import java.util.Collections;
@@ -33,6 +35,8 @@ public class ItemMapper {
     public static ItemDto toItemDto(Item item, List<CommentDto> comments) {
         return toItemDto(item, null, null, comments);
     }
+
+add-item-requests-and-gateway
 
     public static ItemDto toItemDtoWithComments(Item item, List<CommentDto> comments) {
         ItemDto itemDto = toItemDto(item);
@@ -90,4 +94,6 @@ public class ItemMapper {
                 })
                 .collect(Collectors.toList());
     }
+
 }
+

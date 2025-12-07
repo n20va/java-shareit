@@ -34,7 +34,6 @@ public class ItemServiceImpl implements ItemService {
     public ItemDto createItem(CreateItemDto createItemDto, Long ownerId) {
         userService.getUserEntity(ownerId);
 
-        // Проверяем существование запроса, если указан requestId
         if (createItemDto.getRequestId() != null) {
             ItemRequest request = itemRequestRepository.findById(createItemDto.getRequestId())
                     .orElseThrow(() -> new NotFoundException("Запрос с ID " + createItemDto.getRequestId() + " не найден"));

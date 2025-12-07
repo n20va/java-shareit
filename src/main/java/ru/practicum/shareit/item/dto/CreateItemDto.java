@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+
 import lombok.ToString;
 
 @Getter
@@ -15,6 +16,7 @@ public class CreateItemDto {
     private String name;
 
     @NotBlank(message = "Описание вещи не может быть пустым")
+
     private String description;
 
     @NotNull(message = "Статус доступности не может быть null")

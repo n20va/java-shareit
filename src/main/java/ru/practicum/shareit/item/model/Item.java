@@ -4,7 +4,9 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
+
 import ru.practicum.shareit.request.model.ItemRequest;
+
 
 import java.util.Objects;
 
@@ -31,7 +33,7 @@ public class Item {
     private Long ownerId;
 
     @Column(name = "request_id")
-    private Long requestId; // Это поле уже есть!
+    private Long requestId; 
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "request_id", insertable = false, updatable = false)
