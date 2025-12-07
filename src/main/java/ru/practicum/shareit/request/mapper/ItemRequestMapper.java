@@ -1,39 +1,49 @@
 package ru.practicum.shareit.request.mapper;
 
 import org.springframework.stereotype.Component;
+import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.model.ItemRequest;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
 public class ItemRequestMapper {
 
-    public static ItemRequestDto toItemRequestDto(ItemRequest request) {
+    private final ItemService itemService;
+
+    public ItemRequestMapper(ItemService itemService) {
+        this.itemService = itemService;
+    }
+
+    public ItemRequestDto toItemRequestDto(ItemRequest request) {
         ItemRequestDto dto = new ItemRequestDto();
         dto.setId(request.getId());
         dto.setDescription(request.getDescription());
         dto.setRequesterId(request.getRequester().getId());
         dto.setCreated(request.getCreated());
 
-        if (request.getItems() != null && !request.getItems().isEmpty()) {
-            dto.setItems(request.getItems().stream()
-                    .map(ItemRequestMapper::toItemResponseDto)
+        List<ItemDto> items = itemService.getItemsByRequestId(request.getId());
+
+        if (items != null && !items.isEmpty()) {
+            dto.setItems(items.stream()
+                    .map(this::toItemResponseDto)
                     .collect(Collectors.toList()));
         }
 
         return dto;
     }
 
-    private static ItemRequestDto.ItemResponseDto toItemResponseDto(Item item) {
+    private ItemRequestDto.ItemResponseDto toItemResponseDto(ItemDto itemDto) {
         ItemRequestDto.ItemResponseDto dto = new ItemRequestDto.ItemResponseDto();
-        dto.setId(item.getId());
-        dto.setName(item.getName());
-        dto.setDescription(item.getDescription());
-        dto.setAvailable(item.getAvailable());
-        dto.setRequestId(item.getRequestId());
-        dto.setOwnerId(item.getOwnerId());
+        dto.setId(itemDto.getId());
+        dto.setName(itemDto.getName());
+        dto.setDescription(itemDto.getDescription());
+        dto.setAvailable(itemDto.getAvailable());
+        dto.setRequestId(itemDto.getRequestId());
         return dto;
     }
 }

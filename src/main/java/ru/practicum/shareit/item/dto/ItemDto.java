@@ -51,9 +51,9 @@ public class ItemDto {
             if (o == null || getClass() != o.getClass()) return false;
             BookingInfo that = (BookingInfo) o;
             return Objects.equals(id, that.id) &&
-                   Objects.equals(bookerId, that.bookerId) &&
-                   Objects.equals(start, that.start) &&
-                   Objects.equals(end, that.end);
+                    Objects.equals(bookerId, that.bookerId) &&
+                    Objects.equals(start, that.start) &&
+                    Objects.equals(end, that.end);
         }
 
         @Override
@@ -71,6 +71,10 @@ public class ItemDto {
         this.description = description;
         this.available = available;
         this.requestId = requestId;
+    }
+
+    public ItemDto(Long id, String name, String description, Boolean available) {
+        this(id, name, description, available, null);
     }
 
     @Override
@@ -94,4 +98,3 @@ public class ItemDto {
         return Objects.hash(id, name, description, available, requestId);
     }
 }
-

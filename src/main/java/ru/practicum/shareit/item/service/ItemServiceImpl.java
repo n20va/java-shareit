@@ -11,6 +11,8 @@ import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.request.model.ItemRequest;
+import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.service.UserService;
 
 import java.time.LocalDateTime;
@@ -25,11 +27,22 @@ public class ItemServiceImpl implements ItemService {
     private final UserService userService;
     private final BookingRepository bookingRepository;
     private final CommentService commentService;
+    private final ItemRequestRepository itemRequestRepository;
 
     @Override
     @Transactional
     public ItemDto createItem(CreateItemDto createItemDto, Long ownerId) {
         userService.getUserEntity(ownerId);
+
+        // Проверяем существование запроса, если указан requestId
+        if (createItemDto.getRequestId() != null) {
+            ItemRequest request = itemRequestRepository.findById(createItemDto.getRequestId())
+                    .orElseThrow(() -> new NotFoundException("Запрос с ID " + createItemDto.getRequestId() + " не найден"));
+
+            if (request.getRequester().getId().equals(ownerId)) {
+                throw new ValidationException("Нельзя создать вещь в ответ на свой же запрос");
+            }
+        }
 
         Item item = ItemMapper.toItemFromCreateDto(createItemDto, ownerId);
         Item savedItem = itemRepository.save(item);
@@ -83,7 +96,6 @@ public class ItemServiceImpl implements ItemService {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
-        // Используем оптимизированные методы для получения всех бронирований за один запрос
         Map<Long, ItemDto.BookingInfo> lastBookings = getLastBookingsForItems(itemIds);
         Map<Long, ItemDto.BookingInfo> nextBookings = getNextBookingsForItems(itemIds);
 
@@ -204,12 +216,28 @@ public class ItemServiceImpl implements ItemService {
             return null;
         }
         return new ItemDto.BookingInfo(
-            booking.getId(),
-            booking.getBooker().getId(),
-            booking.getStart(),
-            booking.getEnd()
+                booking.getId(),
+                booking.getBooker().getId(),
+                booking.getStart(),
+                booking.getEnd()
         );
     }
+
+    public List<ItemDto> getItemsByRequestId(Long requestId) {
+        List<Item> items = itemRepository.findByRequestId(requestId);
+        List<Long> itemIds = items.stream()
+                .map(Item::getId)
+                .collect(Collectors.toList());
+
+        List<CommentDto> allComments = commentService.getCommentsByItemIds(itemIds);
+        Map<Long, List<CommentDto>> commentsByItem = allComments.stream()
+                .collect(Collectors.groupingBy(CommentDto::getItemId));
+
+        return items.stream()
+                .map(item -> {
+                    List<CommentDto> comments = commentsByItem.getOrDefault(item.getId(), Collections.emptyList());
+                    return ItemMapper.toItemDtoWithComments(item, comments);
+                })
+                .collect(Collectors.toList());
+    }
 }
-
-

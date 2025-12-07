@@ -1,10 +1,7 @@
 package ru.practicum.shareit.item.mapper;
 
 import org.springframework.stereotype.Component;
-import ru.practicum.shareit.item.dto.CommentDto;
-import ru.practicum.shareit.item.dto.CreateItemDto;
-import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.dto.UpdateItemDto;
+import ru.practicum.shareit.item.dto.*;
 import ru.practicum.shareit.item.model.Item;
 
 import java.util.Collections;
@@ -37,7 +34,6 @@ public class ItemMapper {
         return toItemDto(item, null, null, comments);
     }
 
-    // Новый метод, который устанавливает комментарии в базовый DTO
     public static ItemDto toItemDtoWithComments(Item item, List<CommentDto> comments) {
         ItemDto itemDto = toItemDto(item);
         itemDto.setComments(comments != null ? comments : Collections.emptyList());
