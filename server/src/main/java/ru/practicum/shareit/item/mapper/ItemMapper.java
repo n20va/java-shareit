@@ -2,6 +2,8 @@ package ru.practicum.shareit.item.mapper;
 
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.CreateItemDto;
+import ru.practicum.shareit.item.dto.UpdateItemDto;
 import ru.practicum.shareit.item.dto.CommentDto;
 
 import java.util.List;
@@ -36,3 +38,4 @@ public class ItemMapper {
         if (dto.getAvailable() != null) item.setAvailable(dto.getAvailable());
     }
 }
+
