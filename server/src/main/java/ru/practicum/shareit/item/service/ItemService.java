@@ -20,4 +20,8 @@ public interface ItemService {
     void deleteItem(Long itemId, Long ownerId);
 
     CommentDto addComment(Long itemId, CreateCommentDto createCommentDto, Long authorId);
+
+    List<Item> getItemsByRequestId(Long requestId);
+
+
 }
