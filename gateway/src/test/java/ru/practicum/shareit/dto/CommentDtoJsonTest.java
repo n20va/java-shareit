@@ -32,14 +32,12 @@ class CommentDtoJsonTest {
     void deserializeIgnoresReadOnlyFields() throws Exception {
         objectMapper.registerModule(new JavaTimeModule());
 
-        String json = """
-                {
-                  "id": 99,
-                  "text": "Комментарий",
-                  "authorName": "Hacker",
-                  "created": "2025-01-01T12:00:00"
-                }
-                """;
+        String json = "{"
+                + "\"id\": 99,"
+                + "\"text\": \"Комментарий\","
+                + "\"authorName\": \"Hacker\","
+                + "\"created\": \"2025-01-01T12:00:00\""
+                + "}";
 
         CommentDto dto = objectMapper.readValue(json, CommentDto.class);
 
