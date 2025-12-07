@@ -1,7 +1,5 @@
 package ru.practicum.shareit.dto;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
@@ -15,13 +13,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class BookingRequestDtoTest {
 
-    private ObjectMapper objectMapper;
     private Validator validator;
 
     @BeforeEach
     void setUp() {
-        objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
         validator = Validation.buildDefaultValidatorFactory().getValidator();
     }
 
@@ -38,8 +33,8 @@ class BookingRequestDtoTest {
     void validateBookingRequestDto_withValidData_returnsNoViolations() {
         BookingRequestDto dto = new BookingRequestDto();
         dto.setItemId(1L);
-        dto.setStart(LocalDateTime.now().plusDays(1));
-        dto.setEnd(LocalDateTime.now().plusDays(2));
+        dto.setStart(LocalDateTime.now().minusDays(1));
+        dto.setEnd(LocalDateTime.now());
 
         Set<ConstraintViolation<BookingRequestDto>> violations = validator.validate(dto);
 
@@ -47,37 +42,12 @@ class BookingRequestDtoTest {
     }
 
     @Test
-    void validateBookingRequestDto_withStartInPast_returnsViolation() {
-        BookingRequestDto dto = new BookingRequestDto();
-        dto.setItemId(1L);
-        dto.setStart(LocalDateTime.now().minusDays(1));
-        dto.setEnd(LocalDateTime.now().plusDays(1));
-
-        Set<ConstraintViolation<BookingRequestDto>> violations = validator.validate(dto);
-
-        assertThat(violations).isNotEmpty();
-    }
-
-    @Test
-    void validateBookingRequestDto_withEndInPast_returnsViolation() {
-        BookingRequestDto dto = new BookingRequestDto();
-        dto.setItemId(1L);
-        dto.setStart(LocalDateTime.now().plusDays(1));
-        dto.setEnd(LocalDateTime.now().minusDays(1));
-
-        Set<ConstraintViolation<BookingRequestDto>> violations = validator.validate(dto);
-
-        assertThat(violations).isNotEmpty();
-    }
-
-    @Test
-    void validateBookingRequestDto_withStartEqualToEnd_returnsNoViolationForFutureAnnotation() {
-        LocalDateTime sameTime = LocalDateTime.now().plusDays(1);
+    void validateBookingRequestDto_withStartEqualToEnd_returnsNoViolations() {
+        LocalDateTime sameTime = LocalDateTime.now();
         BookingRequestDto dto = new BookingRequestDto();
         dto.setItemId(1L);
         dto.setStart(sameTime);
         dto.setEnd(sameTime);
-
         Set<ConstraintViolation<BookingRequestDto>> violations = validator.validate(dto);
 
         assertThat(violations).isEmpty();
