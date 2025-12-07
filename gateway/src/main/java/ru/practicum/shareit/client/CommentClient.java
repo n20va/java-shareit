@@ -9,36 +9,19 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 
 @Service
-public class UserClient extends BaseClient {
-    private static final String API_PREFIX = "/users";
+public class CommentClient extends BaseClient {
+    private static final String API_PREFIX = "/items";
 
     @Autowired
-    public UserClient(@Value("${shareit-server.url}") String serverUrl,
-                      RestTemplateBuilder builder) {
+    public CommentClient(@Value("${shareit-server.url}") String serverUrl,
+                         RestTemplateBuilder builder) {
         super(builder
                 .uriTemplateHandler(new DefaultUriBuilderFactory(serverUrl + API_PREFIX))
                 .requestFactory(() -> new HttpComponentsClientHttpRequestFactory())
                 .build());
     }
 
-    public ResponseEntity<Object> createUser(Object body) {
-        return post("", body);
-    }
-
-    public ResponseEntity<Object> updateUser(long userId, Object body) {
-        return patch("/" + userId, body);
-    }
-
-    public ResponseEntity<Object> getUser(long id) {
-        return get("/" + id);
-    }
-
-    public ResponseEntity<Object> getAllUsers() {
-        return get("");
-    }
-
-    public ResponseEntity<Object> deleteUser(long id) {
-        return delete("/" + id);
+    public ResponseEntity<Object> createComment(long userId, long itemId, Object body) {
+        return post("/" + itemId + "/comment", userId, body);
     }
 }
-

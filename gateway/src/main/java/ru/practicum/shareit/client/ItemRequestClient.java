@@ -7,7 +7,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.util.DefaultUriBuilderFactory;
-import ru.practicum.shareit.request.dto.CreateItemRequestDto;
 
 import java.util.Map;
 
@@ -16,34 +15,31 @@ public class ItemRequestClient extends BaseClient {
     private static final String API_PREFIX = "/requests";
 
     @Autowired
-    public ItemRequestClient(@Value("${shareit.server.url}") String serverUrl, RestTemplateBuilder builder) {
-        super(
-                builder
-                        .uriTemplateHandler(new DefaultUriBuilderFactory(serverUrl + API_PREFIX))
-                        .requestFactory(HttpComponentsClientHttpRequestFactory::new)
-                        .build(),
-                serverUrl + API_PREFIX
-        );
+    public ItemRequestClient(@Value("${shareit-server.url}") String serverUrl,
+                             RestTemplateBuilder builder) {
+        super(builder
+                .uriTemplateHandler(new DefaultUriBuilderFactory(serverUrl + API_PREFIX))
+                .requestFactory(() -> new HttpComponentsClientHttpRequestFactory())
+                .build());
     }
 
-    public ResponseEntity<Object> createRequest(CreateItemRequestDto createItemRequestDto, Long requesterId) {
-        return post("", requesterId, createItemRequestDto);
+    public ResponseEntity<Object> createRequest(long userId, Object body) {
+        return post("", userId, body);
     }
 
-    public ResponseEntity<Object> getUserRequests(Long requesterId) {
-        return get("", requesterId);
+    public ResponseEntity<Object> getOwnRequests(long userId) {
+        return get("", userId);
     }
 
-    public ResponseEntity<Object> getAllRequests(Long userId, Integer from, Integer size) {
-        Map<String, Object> parameters = Map.of(
+    public ResponseEntity<Object> getAllRequests(long userId, Integer from, Integer size) {
+        Map<String, Object> params = Map.of(
                 "from", from,
                 "size", size
         );
-        return get("/all?from={from}&size={size}", userId, parameters);
+        return get("/all?from={from}&size={size}", userId, params);
     }
 
-    public ResponseEntity<Object> getRequestById(Long requestId, Long userId) {
-        Map<String, Object> parameters = Map.of("requestId", requestId);
-        return get("/{requestId}", userId, parameters);
+    public ResponseEntity<Object> getRequest(long userId, long requestId) {
+        return get("/" + requestId, userId);
     }
 }
