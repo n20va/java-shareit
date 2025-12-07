@@ -1,33 +1,26 @@
 package ru.practicum.shareit.request.dto;
 
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-
+import ru.practicum.shareit.item.dto.ItemDto;
 import java.time.LocalDateTime;
 import java.util.List;
 
-@Getter
-@Setter
-@ToString
 public class ItemRequestDto {
     private Long id;
-
     private String description;
-
-    private Long requesterId;
     private LocalDateTime created;
-    private List<ItemResponseDto> items;
+    private List<ItemDto> items;
 
-    @Getter
-    @Setter
-    @ToString
-    public static class ItemResponseDto {
-        private Long id;
-        private String name;
-        private String description;
-        private Boolean available;
-        private Long requestId;
-        private Long ownerId;
-    }
+    public static class ItemResponseDto extends ItemDto {}
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
+
+    public LocalDateTime getCreated() { return created; }
+    public void setCreated(LocalDateTime created) { this.created = created; }
+
+    public List<ItemDto> getItems() { return items; }
+    public void setItems(List<ItemDto> items) { this.items = items; }
 }
