@@ -1,11 +1,24 @@
 package ru.practicum.shareit.item.model;
 
+import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.request.model.ItemRequest;
+
 public class Item {
     private Long id;
     private String name;
     private String description;
     private Boolean available;
-    private Long requestId;
+    private User owner;
+    private ItemRequest request;
+
+    public Item() {}
+    public Item(Long id, String name, String description, Boolean available, User owner) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.available = available;
+        this.owner = owner;
+    }
 
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
@@ -19,6 +32,11 @@ public class Item {
     public Boolean getAvailable() { return available; }
     public void setAvailable(Boolean available) { this.available = available; }
 
-    public Long getRequestId() { return requestId; }
-    public void setRequestId(Long requestId) { this.requestId = requestId; }
+    public User getOwner() { return owner; }
+    public void setOwner(User owner) { this.owner = owner; }
+
+    public Long getOwnerId() { return owner != null ? owner.getId() : null; }
+
+    public ItemRequest getRequest() { return request; }
+    public void setRequest(ItemRequest request) { this.request = request; }
 }
