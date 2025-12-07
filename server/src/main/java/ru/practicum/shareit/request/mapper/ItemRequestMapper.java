@@ -10,7 +10,7 @@ import ru.practicum.shareit.request.model.ItemRequest;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Component
+@UtilityClass
 public class ItemRequestMapper {
 
     private final ItemService itemService;
