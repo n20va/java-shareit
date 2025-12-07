@@ -33,7 +33,7 @@ public class Item {
     private Long ownerId;
 
     @Column(name = "request_id")
-    private Long requestId; 
+    private Long requestId;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "request_id", insertable = false, updatable = false)
@@ -78,4 +78,5 @@ public class Item {
     public int hashCode() {
         return Objects.hash(id, name, description, available, ownerId, requestId);
     }
+
 }
