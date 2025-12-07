@@ -2,7 +2,9 @@ package ru.practicum.shareit.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 import ru.practicum.shareit.client.ItemRequestClient;
 import ru.practicum.shareit.dto.ItemRequestCreateDto;
 import ru.practicum.shareit.dto.ItemRequestDto;
@@ -16,11 +18,22 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     private final ItemRequestClient itemRequestClient;
     private final ObjectMapper mapper;
 
+    private void ensureSuccess(ResponseEntity<Object> response) {
+        if (!response.getStatusCode().is2xxSuccessful()) {
+            throw new ResponseStatusException(
+                    response.getStatusCode(),
+                    response.getBody() != null ? response.getBody().toString() : null
+            );
+        }
+    }
+
     @Override
     public ItemRequestDto create(Long userId, ItemRequestCreateDto dto) {
         var response = itemRequestClient.createRequest(userId, dto);
+        ensureSuccess(response);
         return mapper.convertValue(response.getBody(), ItemRequestDto.class);
     }
+
 
     @Override
     public List<ItemRequestDto> getOwn(Long userId) {
