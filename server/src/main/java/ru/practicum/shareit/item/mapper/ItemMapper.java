@@ -1,12 +1,14 @@
 package ru.practicum.shareit.item.mapper;
 
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.CreateItemDto;
 import ru.practicum.shareit.item.dto.UpdateItemDto;
 import ru.practicum.shareit.item.dto.CommentDto;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ItemMapper {
 
@@ -28,7 +30,6 @@ public class ItemMapper {
         item.setName(dto.getName());
         item.setDescription(dto.getDescription());
         item.setAvailable(dto.getAvailable());
-        item.setRequestId(dto.getRequestId());
         return item;
     }
 
@@ -37,5 +38,19 @@ public class ItemMapper {
         if (dto.getDescription() != null) item.setDescription(dto.getDescription());
         if (dto.getAvailable() != null) item.setAvailable(dto.getAvailable());
     }
-}
 
+    public CommentDto toCommentDto(Comment comment) {
+        if (comment == null) return null;
+        CommentDto dto = new CommentDto();
+        dto.setId(comment.getId());
+        dto.setText(comment.getText());
+        dto.setAuthorId(comment.getAuthor() != null ? comment.getAuthor().getId() : null);
+        dto.setItemId(comment.getItem() != null ? comment.getItem().getId() : null);
+        return dto;
+    }
+
+    public List<CommentDto> toCommentDtoList(List<Comment> comments) {
+        if (comments == null) return List.of();
+        return comments.stream().map(this::toCommentDto).collect(Collectors.toList());
+    }
+}
