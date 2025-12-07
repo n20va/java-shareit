@@ -16,9 +16,6 @@ import java.util.List;
 public class BookingController {
     private final BookingService bookingService;
 
-    public BookingController(BookingService bookingService) {
-        this.bookingService = bookingService;
-    }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -65,4 +62,5 @@ public class BookingController {
     ) {
         return bookingService.getOwnerBookings(state, ownerId, from, size);
     }
+
 }
