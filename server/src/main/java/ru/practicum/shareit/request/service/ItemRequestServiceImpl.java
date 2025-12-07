@@ -16,7 +16,6 @@ import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,23 +32,25 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     public ItemRequestDto createRequest(CreateItemRequestDto createItemRequestDto, Long requesterId) {
         User requester = getUserByIdOrThrow(requesterId);
 
-        ItemRequest request = new ItemRequest();
-        request.setDescription(createItemRequestDto.getDescription());
-        request.setRequester(requester);
-        request.setCreated(LocalDateTime.now());
+        ItemRequest request = ItemRequestMapper.toItemRequest(createItemRequestDto, requester);
 
         ItemRequest savedRequest = requestRepository.save(request);
-        return ItemRequestMapper.toItemRequestDto(savedRequest);
+
+        List<Item> items = itemRepository.findByRequestId(savedRequest.getId());
+
+        return ItemRequestMapper.toItemRequestDto(savedRequest, items);
     }
 
     @Override
     public ItemRequestDto getRequestById(Long requestId, Long userId) {
         getUserByIdOrThrow(userId);
 
-        ItemRequest request = requestRepository.findByIdWithItems(requestId)
+        ItemRequest request = requestRepository.findById(requestId)
                 .orElseThrow(() -> new NotFoundException("Запрос с ID " + requestId + " не найден"));
 
-        return ItemRequestMapper.toItemRequestDto(request);
+        List<Item> items = itemRepository.findByRequestId(requestId);
+
+        return ItemRequestMapper.toItemRequestDto(request, items);
     }
 
     @Override
@@ -59,7 +60,10 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         List<ItemRequest> requests = requestRepository.findByRequesterIdOrderByCreatedDesc(requesterId);
 
         return requests.stream()
-                .map(ItemRequestMapper::toItemRequestDto)
+                .map(req -> {
+                    List<Item> items = itemRepository.findByRequestId(req.getId());
+                    return ItemRequestMapper.toItemRequestDto(req, items);
+                })
                 .collect(Collectors.toList());
     }
 
@@ -71,7 +75,10 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         List<ItemRequest> requests = requestRepository.findByRequesterIdNotOrderByCreatedDesc(userId, pageable);
 
         return requests.stream()
-                .map(ItemRequestMapper::toItemRequestDto)
+                .map(req -> {
+                    List<Item> items = itemRepository.findByRequestId(req.getId());
+                    return ItemRequestMapper.toItemRequestDto(req, items);
+                })
                 .collect(Collectors.toList());
     }
 
