@@ -14,9 +14,6 @@ import java.util.List;
 public class ItemController {
     private final ItemService itemService;
 
-    public ItemController(ItemService itemService) {
-        this.itemService = itemService;
-    }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
@@ -72,4 +69,5 @@ public class ItemController {
     ) {
         return itemService.addComment(itemId, createCommentDto, userId);
     }
+
 }
