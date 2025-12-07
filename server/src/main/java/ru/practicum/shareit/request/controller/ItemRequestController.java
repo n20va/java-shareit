@@ -15,10 +15,6 @@ import java.util.List;
 public class ItemRequestController {
     private final ItemRequestService requestService;
 
-    public ItemRequestController(ItemRequestService requestService) {
-        this.requestService = requestService;
-    }
-
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ItemRequestDto createRequest(
@@ -51,4 +47,5 @@ public class ItemRequestController {
     ) {
         return requestService.getRequestById(requestId, userId);
     }
+
 }
