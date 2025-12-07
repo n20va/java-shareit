@@ -1,37 +1,35 @@
 package ru.practicum.shareit.item.mapper;
 
-import ru.practicum.shareit.item.dto.CreateItemDto;
-import ru.practicum.shareit.item.dto.UpdateItemDto;
-import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.CommentDto;
+
+import java.util.List;
 
 public class ItemMapper {
 
-    public static Item toItem(CreateItemDto dto) {
-        if (dto == null) return null;
-        Item item = new Item();
-        item.setName(dto.getName());
-        item.setDescription(dto.getDescription());
-        item.setAvailable(dto.getAvailable());
-        item.setRequestId(dto.getRequestId());
-        return item;
-    }
-
-    public static Item toItem(UpdateItemDto dto, Item existingItem) {
-        if (dto.getName() != null) existingItem.setName(dto.getName());
-        if (dto.getDescription() != null) existingItem.setDescription(dto.getDescription());
-        if (dto.getAvailable() != null) existingItem.setAvailable(dto.getAvailable());
-        return existingItem;
-    }
-
-    public static ItemDto toItemDto(Item item) {
-        if (item == null) return null;
+    public static ItemDto toItemDto(Item item, List<CommentDto> comments) {
         ItemDto dto = new ItemDto();
         dto.setId(item.getId());
         dto.setName(item.getName());
         dto.setDescription(item.getDescription());
         dto.setAvailable(item.getAvailable());
-        dto.setRequestId(item.getRequestId());
+        dto.setRequestId(item.getRequest() != null ? item.getRequest().getId() : null);
+        dto.setComments(comments);
         return dto;
+    }
+
+    public static Item toItemFromCreateDto(CreateItemDto dto, Long ownerId) {
+        Item item = new Item();
+        item.setName(dto.getName());
+        item.setDescription(dto.getDescription());
+        item.setAvailable(dto.getAvailable());
+        return item;
+    }
+
+    public static void updateItemFromDto(UpdateItemDto dto, Item item) {
+        if (dto.getName() != null) item.setName(dto.getName());
+        if (dto.getDescription() != null) item.setDescription(dto.getDescription());
+        if (dto.getAvailable() != null) item.setAvailable(dto.getAvailable());
     }
 }
