@@ -4,6 +4,8 @@ public class UpdateUserDto {
     private String name;
     private String email;
 
+    public UpdateUserDto() {}
+
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
 
