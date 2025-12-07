@@ -15,22 +15,24 @@ class CommentDtoJsonTest {
     private ObjectMapper objectMapper;
 
     @Test
-void serializeCommentDto_correctly() throws Exception {
-    objectMapper.registerModule(new JavaTimeModule());
+    void serializeCommentDto_correctly() throws Exception {
+        objectMapper.registerModule(new JavaTimeModule());
 
-    CommentDto dto = new CommentDto();
-    dto.setText("Хорошая вещь");
+        CommentDto dto = new CommentDto();
+        dto.setText("Хорошая вещь");
+        dto.setAuthorName("Автор");
+        dto.setCreated(null);
 
-    String json = objectMapper.writeValueAsString(dto);
+        String json = objectMapper.writeValueAsString(dto);
 
-    assertThat(json).contains("Хорошая вещь");
-    assertThat(json).contains("authorName");
-    assertThat(json).contains("created");
-}
+        assertThat(json).contains("Хорошая вещь");
 
+        assertThat(json).contains("authorName");
+        assertThat(json).contains("created");
+    }
 
     @Test
-    void deserializeIgnoresReadOnlyFields() throws Exception {
+    void deserializeFields_correctly() throws Exception {
         objectMapper.registerModule(new JavaTimeModule());
 
         String json = "{"
@@ -44,7 +46,7 @@ void serializeCommentDto_correctly() throws Exception {
 
         assertThat(dto.getText()).isEqualTo("Комментарий");
         assertThat(dto.getId()).isNull();
-        assertThat(dto.getAuthorName()).isNull();
-        assertThat(dto.getCreated()).isNull();
+        assertThat(dto.getAuthorName()).isEqualTo("Hacker");
+        assertThat(dto.getCreated()).isNotNull();
     }
 }
