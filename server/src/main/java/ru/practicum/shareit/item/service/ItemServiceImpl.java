@@ -2,12 +2,12 @@ package ru.practicum.shareit.item.service;
 
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.dto.ItemDto;
-import ru.practicum.shareit.item.dto.CreateItemDto;
-import ru.practicum.shareit.item.dto.UpdateItemDto;
+import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.item.repository.CommentRepository;
-import ru.practicum.shareit.item.dto.CommentDto;
+import ru.practicum.shareit.user.model.User;
+import ru.practicum.shareit.item.model.Comment;
 
 import java.util.Collections;
 import java.util.List;
@@ -28,7 +28,9 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public Item createItem(Long userId, Item item) {
-        item.setOwnerId(userId);
+        User owner = new User();
+        owner.setId(userId);
+        item.setOwner(owner);
         return itemRepository.save(item);
     }
 
@@ -46,8 +48,7 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public Item getItemById(Long itemId, Long userId) {
-        Item item = itemRepository.findById(itemId);
-        return item;
+        return itemRepository.findById(itemId);
     }
 
     @Override
@@ -67,18 +68,29 @@ public class ItemServiceImpl implements ItemService {
     public List<Item> getItemsByRequestId(Long requestId) {
         return itemRepository.findByRequestId(requestId);
     }
+
+    @Override
     public CommentDto addComment(Long userId, Long itemId, CommentDto commentDto) {
         Item item = itemRepository.findById(itemId);
         if (item == null) {
             throw new RuntimeException("Item не найден");
         }
-        commentDto.setItemId(itemId);
-        commentDto.setAuthorId(userId);
-        return commentRepository.save(commentDto);
+
+        Comment comment = new Comment();
+        comment.setText(commentDto.getText());
+        comment.setItem(item);
+
+        User author = new User();
+        author.setId(userId);
+        comment.setAuthor(author);
+
+        Comment saved = commentRepository.save(comment);
+        return itemMapper.toCommentDto(saved);
     }
 
+    @Override
     public List<CommentDto> getComments(Long itemId) {
-        return commentRepository.findByItemId(itemId);
+        List<Comment> comments = commentRepository.findByItemId(itemId);
+        return itemMapper.toCommentDtoList(comments);
     }
-
 }
