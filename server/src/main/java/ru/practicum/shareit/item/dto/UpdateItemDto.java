@@ -14,5 +14,4 @@ public class UpdateItemDto {
 
     public Boolean getAvailable() { return available; }
     public void setAvailable(Boolean available) { this.available = available; }
-
 }
