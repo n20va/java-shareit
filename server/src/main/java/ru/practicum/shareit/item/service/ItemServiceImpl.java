@@ -240,4 +240,11 @@ public class ItemServiceImpl implements ItemService {
                 })
                 .collect(Collectors.toList());
     }
+
+    @Override
+public List<Item> getItemsByRequestId(Long requestId) {
+    return itemRepository.findByRequestId(requestId);
+}
+
+
 }
