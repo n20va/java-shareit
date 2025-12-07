@@ -27,71 +27,57 @@ class BookingRequestDtoTest {
 
     @Test
     void validateBookingRequestDto_withNullFields_returnsViolations() {
-        // Arrange
         BookingRequestDto dto = new BookingRequestDto();
 
-        // Act
         Set<ConstraintViolation<BookingRequestDto>> violations = validator.validate(dto);
 
-        // Assert
-        assertThat(violations).hasSize(3); // itemId, start, end
+        assertThat(violations).hasSize(3);
     }
 
     @Test
     void validateBookingRequestDto_withValidData_returnsNoViolations() {
-        // Arrange
         BookingRequestDto dto = new BookingRequestDto();
         dto.setItemId(1L);
         dto.setStart(LocalDateTime.now().plusDays(1));
         dto.setEnd(LocalDateTime.now().plusDays(2));
 
-        // Act
         Set<ConstraintViolation<BookingRequestDto>> violations = validator.validate(dto);
 
-        // Assert
         assertThat(violations).isEmpty();
     }
 
     @Test
     void validateBookingRequestDto_withStartInPast_returnsViolation() {
-        // Arrange
         BookingRequestDto dto = new BookingRequestDto();
         dto.setItemId(1L);
-        dto.setStart(LocalDateTime.now().minusDays(1)); // start в прошлом
+        dto.setStart(LocalDateTime.now().minusDays(1));
         dto.setEnd(LocalDateTime.now().plusDays(1));
 
-        // Act
         Set<ConstraintViolation<BookingRequestDto>> violations = validator.validate(dto);
 
-        // Assert
-        assertThat(violations).isNotEmpty(); // должна быть ошибка, т.к. start в прошлом
+        assertThat(violations).isNotEmpty();
     }
 
     @Test
     void validateBookingRequestDto_withEndInPast_returnsViolation() {
-        // Arrange
         BookingRequestDto dto = new BookingRequestDto();
         dto.setItemId(1L);
         dto.setStart(LocalDateTime.now().plusDays(1));
-        dto.setEnd(LocalDateTime.now().minusDays(1)); // end в прошлом
+        dto.setEnd(LocalDateTime.now().minusDays(1));
 
-        // Act
         Set<ConstraintViolation<BookingRequestDto>> violations = validator.validate(dto);
 
-        // Assert
-        assertThat(violations).isNotEmpty(); // должна быть ошибка, т.к. end в прошлом
+        assertThat(violations).isNotEmpty();
     }
 
     @Test
     void validateBookingRequestDto_withStartEqualToEnd_returnsNoViolationForFutureAnnotation() {
-        // Arrange
         LocalDateTime sameTime = LocalDateTime.now().plusDays(1);
         BookingRequestDto dto = new BookingRequestDto();
         dto.setItemId(1L);
         dto.setStart(sameTime);
         dto.setEnd(sameTime);
 
-        // Act
         Set<ConstraintViolation<BookingRequestDto>> violations = validator.validate(dto);
 
         assertThat(violations).isEmpty();
