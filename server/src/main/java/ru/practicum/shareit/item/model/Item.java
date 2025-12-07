@@ -1,79 +1,24 @@
 package ru.practicum.shareit.item.model;
 
-import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import lombok.ToString;
-import ru.practicum.shareit.request.model.ItemRequest;
-
-import java.util.Objects;
-
-@Entity
-@Table(name = "items")
-@Getter
-@Setter
-@ToString
 public class Item {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @Column(name = "name", nullable = false)
     private String name;
-
-    @Column(name = "description", nullable = false, length = 512)
     private String description;
-
-    @Column(name = "is_available", nullable = false)
     private Boolean available;
+    private Long requestId;
 
-    @Column(name = "owner_id", nullable = false)
-    private Long ownerId;
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
 
-    @Column(name = "request_id")
-    private Long requestId; // Это поле уже есть!
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "request_id", insertable = false, updatable = false)
-    private ItemRequest itemRequest;
+    public String getDescription() { return description; }
+    public void setDescription(String description) { this.description = description; }
 
-    public Item() {
-    }
+    public Boolean getAvailable() { return available; }
+    public void setAvailable(Boolean available) { this.available = available; }
 
-    public Item(Long id, String name, String description, Boolean available,
-                Long ownerId, Long requestId) {
-        this.id = id;
-        this.name = name;
-        this.description = description;
-        this.available = available;
-        this.ownerId = ownerId;
-        this.requestId = requestId;
-    }
-
-    public Item(Long id, String name, String description, Boolean available,
-                Long ownerId) {
-        this(id, name, description, available, ownerId, null);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        Item item = (Item) o;
-        return Objects.equals(id, item.id)
-                && Objects.equals(name, item.name)
-                && Objects.equals(description, item.description)
-                && Objects.equals(available, item.available)
-                && Objects.equals(ownerId, item.ownerId)
-                && Objects.equals(requestId, item.requestId);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, name, description, available, ownerId, requestId);
-    }
+    public Long getRequestId() { return requestId; }
+    public void setRequestId(Long requestId) { this.requestId = requestId; }
 }
