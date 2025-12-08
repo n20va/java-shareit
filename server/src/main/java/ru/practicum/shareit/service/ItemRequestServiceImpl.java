@@ -17,7 +17,9 @@ import ru.practicum.shareit.repository.ItemRequestRepository;
 import ru.practicum.shareit.repository.UserRepository;
 
 import java.util.List;
+import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -43,10 +45,19 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         getUserOrThrow(userId);
 
         List<ItemRequest> requests = repository.findAllByRequesterIdOrderByCreatedDesc(userId);
+        if (requests.isEmpty()) {
+            return List.of();
+        }
+
+        List<Long> requestIds = requests.stream()
+                .map(ItemRequest::getId)
+                .toList();
+
+        Map<Long, List<Item>> itemsByRequestId = loadItemsByRequestIds(requestIds);
 
         return requests.stream()
                 .map(r -> {
-                    List<Item> items = itemRepository.findAllByRequestId(r.getId());
+                    List<Item> items = itemsByRequestId.getOrDefault(r.getId(), List.of());
                     return mapper.toResponseDto(r, items);
                 })
                 .toList();
@@ -61,9 +72,20 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         Page<ItemRequest> page =
                 repository.findAllByRequesterIdNot(userId, pageable);
 
-        return page.stream()
+        List<ItemRequest> requests = page.getContent();
+        if (requests.isEmpty()) {
+            return List.of();
+        }
+
+        List<Long> requestIds = requests.stream()
+                .map(ItemRequest::getId)
+                .toList();
+
+        Map<Long, List<Item>> itemsByRequestId = loadItemsByRequestIds(requestIds);
+
+        return requests.stream()
                 .map(r -> {
-                    List<Item> items = itemRepository.findAllByRequestId(r.getId());
+                    List<Item> items = itemsByRequestId.getOrDefault(r.getId(), List.of());
                     return mapper.toResponseDto(r, items);
                 })
                 .toList();
@@ -76,7 +98,8 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         ItemRequest request = repository.findById(requestId)
                 .orElseThrow(() -> new NoSuchElementException("Request not found"));
 
-        List<Item> items = itemRepository.findAllByRequestId(requestId);
+        Map<Long, List<Item>> itemsByRequestId = loadItemsByRequestIds(List.of(request.getId()));
+        List<Item> items = itemsByRequestId.getOrDefault(request.getId(), List.of());
 
         return mapper.toResponseDto(request, items);
     }
@@ -84,5 +107,14 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     private User getUserOrThrow(Long userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("User not found"));
+    }
+
+    private Map<Long, List<Item>> loadItemsByRequestIds(List<Long> requestIds) {
+        if (requestIds == null || requestIds.isEmpty()) {
+            return Map.of();
+        }
+        List<Item> items = itemRepository.findAllByRequestIdIn(requestIds);
+        return items.stream()
+                .collect(Collectors.groupingBy(item -> item.getRequest().getId()));
     }
 }
