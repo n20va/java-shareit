@@ -1,25 +1,19 @@
 package ru.practicum.shareit.repository;
 
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import ru.practicum.shareit.entity.Item;
+import ru.practicum.shareit.entity.ItemRequest;
 
 import java.util.List;
 
-public interface ItemRepository extends JpaRepository<Item, Long> {
+public interface ItemRequestRepository extends JpaRepository<ItemRequest, Long> {
 
-    List<Item> findAllByOwnerId(Long ownerId);
+    List<ItemRequest> findAllByRequesterIdOrderByCreatedDesc(Long userId);
 
-    List<Item> findAllByRequestId(Long requestId);
-
-    List<Item> findAllByRequestIdIn(List<Long> requestIds);
-
-    @Query("""
-        SELECT i FROM Item i
-        WHERE (upper(i.name) LIKE upper(concat('%', :text, '%'))
-           OR upper(i.description) LIKE upper(concat('%', :text, '%')))
-          AND i.available = true
-    """)
-    List<Item> search(@Param("text") String text);
+    @Query("SELECT ir FROM ItemRequest ir WHERE ir.requester.id <> :userId ORDER BY ir.created DESC")
+    Page<ItemRequest> findAllByRequesterIdNot(@Param("userId") Long userId, Pageable pageable);
 }
