@@ -1,6 +1,7 @@
 package ru.practicum.shareit.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.dto.booking.BookingRequestDto;
@@ -82,20 +83,29 @@ public class BookingServiceImpl implements BookingService {
 
         userService.getUserEntity(userId);
 
+        int page = from / size;
+        Pageable pageable = PageRequest.of(page, size);
         LocalDateTime now = LocalDateTime.now();
+
         List<Booking> list = switch (state.toUpperCase()) {
-            case "ALL" -> bookingRepository.findAllByBookerIdOrderByStartDesc(userId);
-            case "CURRENT" -> bookingRepository.findAllByBookerIdAndStartBeforeAndEndAfterOrderByStartDesc(userId, now, now);
-            case "PAST" -> bookingRepository.findAllByBookerIdAndEndBeforeOrderByStartDesc(userId, now);
-            case "FUTURE" -> bookingRepository.findAllByBookerIdAndStartAfterOrderByStartDesc(userId, now);
-            case "WAITING" -> bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, BookingStatus.WAITING);
-            case "REJECTED" -> bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, BookingStatus.REJECTED);
-            default -> throw new IllegalArgumentException("Unknown state: " + state);
+            case "ALL" ->
+                    bookingRepository.findAllByBookerIdOrderByStartDesc(userId, pageable);
+            case "CURRENT" ->
+                    bookingRepository.findAllByBookerIdAndStartBeforeAndEndAfterOrderByStartDesc(
+                            userId, now, now, pageable);
+            case "PAST" ->
+                    bookingRepository.findAllByBookerIdAndEndBeforeOrderByStartDesc(userId, now, pageable);
+            case "FUTURE" ->
+                    bookingRepository.findAllByBookerIdAndStartAfterOrderByStartDesc(userId, now, pageable);
+            case "WAITING" ->
+                    bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, BookingStatus.WAITING, pageable);
+            case "REJECTED" ->
+                    bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, BookingStatus.REJECTED, pageable);
+            default ->
+                    throw new IllegalArgumentException("Unknown state: " + state);
         };
 
         return list.stream()
-                .skip(from)
-                .limit(size)
                 .map(bookingMapper::toResponseDto)
                 .toList();
     }
@@ -105,20 +115,28 @@ public class BookingServiceImpl implements BookingService {
 
         userService.getUserEntity(ownerId);
 
+        int page = from / size;
+        Pageable pageable = PageRequest.of(page, size);
         LocalDateTime now = LocalDateTime.now();
+
         List<Booking> list = switch (state.toUpperCase()) {
-            case "ALL" -> bookingRepository.findAllByOwnerId(ownerId);
-            case "CURRENT" -> bookingRepository.findCurrentByOwner(ownerId, now);
-            case "PAST" -> bookingRepository.findPastByOwner(ownerId, now);
-            case "FUTURE" -> bookingRepository.findFutureByOwner(ownerId, now);
-            case "WAITING" -> bookingRepository.findByOwnerAndStatus(ownerId, BookingStatus.WAITING);
-            case "REJECTED" -> bookingRepository.findByOwnerAndStatus(ownerId, BookingStatus.REJECTED);
-            default -> throw new IllegalArgumentException("Unknown state: " + state);
+            case "ALL" ->
+                    bookingRepository.findAllByOwnerId(ownerId, pageable);
+            case "CURRENT" ->
+                    bookingRepository.findCurrentByOwner(ownerId, now, pageable);
+            case "PAST" ->
+                    bookingRepository.findPastByOwner(ownerId, now, pageable);
+            case "FUTURE" ->
+                    bookingRepository.findFutureByOwner(ownerId, now, pageable);
+            case "WAITING" ->
+                    bookingRepository.findByOwnerAndStatus(ownerId, BookingStatus.WAITING, pageable);
+            case "REJECTED" ->
+                    bookingRepository.findByOwnerAndStatus(ownerId, BookingStatus.REJECTED, pageable);
+            default ->
+                    throw new IllegalArgumentException("Unknown state: " + state);
         };
 
         return list.stream()
-                .skip(from)
-                .limit(size)
                 .map(bookingMapper::toResponseDto)
                 .toList();
     }
