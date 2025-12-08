@@ -15,6 +15,7 @@ import ru.practicum.shareit.mapper.ItemRequestMapper;
 import ru.practicum.shareit.repository.ItemRepository;
 import ru.practicum.shareit.repository.ItemRequestRepository;
 import ru.practicum.shareit.repository.UserRepository;
+
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -29,8 +30,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
 
     @Override
     public ItemRequestDto create(Long userId, ItemRequestCreateDto dto) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("User not found"));
+        User user = getUserOrThrow(userId);
 
         ItemRequest request = mapper.toEntity(dto, user);
         ItemRequest saved = repository.save(request);
@@ -40,8 +40,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
 
     @Override
     public List<ItemRequestDto> getOwn(Long userId) {
-        userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("User not found"));
+        getUserOrThrow(userId);
 
         List<ItemRequest> requests = repository.findAllByRequesterIdOrderByCreatedDesc(userId);
 
@@ -55,8 +54,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
 
     @Override
     public List<ItemRequestDto> getAll(Long userId, int from, int size) {
-        userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("User not found"));
+        getUserOrThrow(userId);
 
         Pageable pageable = PageRequest.of(from / size, size, Sort.by("created").descending());
 
@@ -71,12 +69,9 @@ public class ItemRequestServiceImpl implements ItemRequestService {
                 .toList();
     }
 
-
-
     @Override
     public ItemRequestDto getById(Long userId, Long requestId) {
-        userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("User not found"));
+        getUserOrThrow(userId);
 
         ItemRequest request = repository.findById(requestId)
                 .orElseThrow(() -> new NoSuchElementException("Request not found"));
@@ -84,5 +79,10 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         List<Item> items = itemRepository.findAllByRequestId(requestId);
 
         return mapper.toResponseDto(request, items);
+    }
+
+    private User getUserOrThrow(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("User not found"));
     }
 }
