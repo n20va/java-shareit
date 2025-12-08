@@ -4,10 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.client.ItemClient;
+import ru.practicum.shareit.client.CommentClient;
 import ru.practicum.shareit.dto.ItemCreateDto;
 import ru.practicum.shareit.dto.ItemDto;
 import ru.practicum.shareit.dto.ItemUpdateDto;
-import ru.practicum.shareit.client.CommentClient;
 
 import java.util.List;
 
@@ -46,9 +46,12 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemDto> search(String text) {
+        if (text == null || text.isBlank()) {
+            return List.of();
+        }
+
         var response = itemClient.search(text);
         return mapper.convertValue(response.getBody(),
                 mapper.getTypeFactory().constructCollectionType(List.class, ItemDto.class));
     }
-
 }
