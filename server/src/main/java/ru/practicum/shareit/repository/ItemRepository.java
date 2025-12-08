@@ -12,7 +12,7 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
     List<Item> findAllByOwnerId(Long ownerId);
 
     List<Item> findAllByRequestId(Long requestId);
-    
+
     List<Item> findAllByRequestIdIn(List<Long> requestIds);
 
     @Query("""
@@ -21,5 +21,6 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
            OR upper(i.description) LIKE upper(concat('%', :text, '%')))
           AND i.available = true
     """)
+
     List<Item> search(@Param("text") String text);
 }
