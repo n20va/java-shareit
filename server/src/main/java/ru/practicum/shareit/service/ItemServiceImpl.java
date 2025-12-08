@@ -8,14 +8,20 @@ import ru.practicum.shareit.entity.Booking;
 import ru.practicum.shareit.entity.Item;
 import ru.practicum.shareit.entity.ItemRequest;
 import ru.practicum.shareit.entity.User;
+import ru.practicum.shareit.entity.Comment;
 import ru.practicum.shareit.exception.ForbiddenException;
 import ru.practicum.shareit.mapper.CommentMapper;
 import ru.practicum.shareit.mapper.ItemMapper;
-import ru.practicum.shareit.repository.*;
+import ru.practicum.shareit.repository.BookingRepository;
+import ru.practicum.shareit.repository.CommentRepository;
+import ru.practicum.shareit.repository.ItemRepository;
+import ru.practicum.shareit.repository.ItemRequestRepository;
+import ru.practicum.shareit.repository.UserRepository;
 
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +32,7 @@ public class ItemServiceImpl implements ItemService {
     private final CommentRepository commentRepository;
     private final ItemRequestRepository requestRepository;
     private final BookingServiceImpl bookingService;
+    private final BookingRepository bookingRepository;
 
     @Override
     public ItemDto createItem(ItemDto dto, Long ownerId) {
@@ -33,7 +40,6 @@ public class ItemServiceImpl implements ItemService {
                 .orElseThrow(() -> new NoSuchElementException("Пользователь не найден"));
 
         ItemRequest request = null;
-
         if (dto.getRequestId() != null) {
             request = requestRepository.findById(dto.getRequestId())
                     .orElseThrow(() -> new NoSuchElementException("Запрос не найден"));
@@ -56,9 +62,15 @@ public class ItemServiceImpl implements ItemService {
             throw new ForbiddenException("Редактировать вещь может только владелец");
         }
 
-        if (dto.getName() != null) existing.setName(dto.getName());
-        if (dto.getDescription() != null) existing.setDescription(dto.getDescription());
-        if (dto.getAvailable() != null) existing.setAvailable(dto.getAvailable());
+        if (dto.getName() != null) {
+            existing.setName(dto.getName());
+        }
+        if (dto.getDescription() != null) {
+            existing.setDescription(dto.getDescription());
+        }
+        if (dto.getAvailable() != null) {
+            existing.setAvailable(dto.getAvailable());
+        }
 
         existing = itemRepository.save(existing);
         return ItemMapper.toItemDto(existing);
@@ -80,11 +92,13 @@ public class ItemServiceImpl implements ItemService {
             Booking last = bookingService.findLastBooking(itemId);
             Booking next = bookingService.findNextBooking(itemId);
 
-            if (last != null)
+            if (last != null) {
                 lastBooking = Map.of("id", last.getId(), "bookerId", last.getBooker().getId());
+            }
 
-            if (next != null)
+            if (next != null) {
                 nextBooking = Map.of("id", next.getId(), "bookerId", next.getBooker().getId());
+            }
         }
 
         return ItemMapper.toItemDto(item, lastBooking, nextBooking, comments);
@@ -92,19 +106,49 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemDto> getItemsByOwner(Long ownerId) {
-        return itemRepository.findAllByOwnerId(ownerId).stream()
+        List<Item> items = itemRepository.findAllByOwnerId(ownerId);
+        if (items.isEmpty()) {
+            return List.of();
+        }
+
+        List<Long> itemIds = items.stream()
+                .map(Item::getId)
+                .toList();
+
+        Map<Long, List<Comment>> commentsByItemId = commentRepository.findAllByItemIdIn(itemIds)
+                .stream()
+                .collect(Collectors.groupingBy(c -> c.getItem().getId()));
+
+        Map<Long, Booking> lastByItemId = bookingRepository.findLastBookingsForItems(itemIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        b -> b.getItem().getId(),
+                        b -> b,
+                        (existing, ignored) -> existing
+                ));
+
+        Map<Long, Booking> nextByItemId = bookingRepository.findNextBookingsForItems(itemIds)
+                .stream()
+                .collect(Collectors.toMap(
+                        b -> b.getItem().getId(),
+                        b -> b,
+                        (existing, ignored) -> existing
+                ));
+        return items.stream()
                 .map(item -> {
-                    List<CommentDto> comments = commentRepository.findAllByItemId(item.getId()).stream()
+                    List<CommentDto> comments = commentsByItemId
+                            .getOrDefault(item.getId(), List.of())
+                            .stream()
                             .map(CommentMapper::toCommentDto)
                             .toList();
 
-                    Booking last = bookingService.findLastBooking(item.getId());
-                    Booking next = bookingService.findNextBooking(item.getId());
+                    Booking last = lastByItemId.get(item.getId());
+                    Booking next = nextByItemId.get(item.getId());
 
-                    Object lastBooking = last == null ? null :
+                    Object lastBooking = (last == null) ? null :
                             Map.of("id", last.getId(), "bookerId", last.getBooker().getId());
 
-                    Object nextBooking = next == null ? null :
+                    Object nextBooking = (next == null) ? null :
                             Map.of("id", next.getId(), "bookerId", next.getBooker().getId());
 
                     return ItemMapper.toItemDto(item, lastBooking, nextBooking, comments);
@@ -114,9 +158,6 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public List<ItemDto> search(String text) {
-        if (text == null || text.isBlank())
-            return List.of();
-
         return itemRepository.search(text).stream()
                 .map(ItemMapper::toItemDto)
                 .toList();
