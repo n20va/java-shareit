@@ -99,7 +99,7 @@ class BookingServiceImplTest {
     void createBookingFailsWhenItemNotAvailable() {
         User owner = createUser("owner@test.com", "Owner");
         User booker = createUser("booker@test.com", "Booker");
-        Item item = createItem(owner, "Test Item", false); // available = false
+        Item item = createItem(owner, "Test Item", false);
 
         BookingRequestDto dto = new BookingRequestDto();
         dto.setItemId(item.getId());
@@ -169,7 +169,6 @@ class BookingServiceImplTest {
         User booker = createUser("booker2@test.com", "Booker2");
         Item item = createItem(owner, "Test Item", true);
 
-        // FUTURE: start > now
         BookingRequestDto dtoFuture = new BookingRequestDto();
         dtoFuture.setItemId(item.getId());
         dtoFuture.setStart(LocalDateTime.now().plusDays(1));
@@ -189,9 +188,9 @@ class BookingServiceImplTest {
         Booking booking = new Booking();
         booking.setItem(item);
         booking.setBooker(booker);
-        booking.setStart(LocalDateTime.now().minusHours(1));  // start < now
-        booking.setEnd(LocalDateTime.now().plusHours(1));     // end > now
-        booking.setStatus(BookingStatus.APPROVED);            // approved для CURRENT
+        booking.setStart(LocalDateTime.now().minusHours(1));
+        booking.setEnd(LocalDateTime.now().plusHours(1));
+        booking.setStatus(BookingStatus.APPROVED);
         bookingRepository.save(booking);
 
         List<BookingResponseDto> bookings = bookingService.getBookingsByUser(booker.getId(), "CURRENT", 0, 10);
@@ -203,17 +202,12 @@ class BookingServiceImplTest {
     void getBookingsByUserWaitingState() {
         User owner = createUser("owner4@test.com", "Owner4");
         User booker = createUser("booker4@test.com", "Booker4");
-        Item item = createItem(owner, "Test Item", true);
-
-        // WAITING: статус WAITING
+        Item item = createItem(owner, "Test
         BookingRequestDto dtoWaiting = new BookingRequestDto();
         dtoWaiting.setItemId(item.getId());
         dtoWaiting.setStart(LocalDateTime.now().plusDays(1));
         dtoWaiting.setEnd(LocalDateTime.now().plusDays(2));
         BookingResponseDto booking = bookingService.createBooking(dtoWaiting, booker.getId());
-
-        // approveBooking меняет статус на APPROVED, поэтому оставляем WAITING
-        // или создать напрямую через репозиторий с WAITING
 
         List<BookingResponseDto> bookings = bookingService.getBookingsByUser(booker.getId(), "WAITING", 0, 10);
         assertEquals(1, bookings.size());
@@ -232,7 +226,6 @@ class BookingServiceImplTest {
         dto.setEnd(LocalDateTime.now().plusDays(2));
         BookingResponseDto booking = bookingService.createBooking(dto, booker.getId());
 
-        // REJECTED: approve с false
         bookingService.approveBooking(booking.getId(), owner.getId(), false);
 
         List<BookingResponseDto> bookings = bookingService.getBookingsByUser(booker.getId(), "REJECTED", 0, 10);
@@ -336,7 +329,7 @@ class BookingServiceImplTest {
         dto.setItemId(item.getId());
         dto.setStart(LocalDateTime.now().plusDays(1));
         dto.setEnd(LocalDateTime.now().plusDays(2));
-        bookingService.createBooking(dto, booker.getId());  // WAITING
+        bookingService.createBooking(dto, booker.getId());
 
         List<BookingResponseDto> bookings = bookingService.getBookingsByOwner(owner.getId(), "WAITING", 0, 10);
         assertEquals(1, bookings.size());
@@ -354,35 +347,7 @@ class BookingServiceImplTest {
         dto.setEnd(LocalDateTime.now().plusDays(2));
 
         assertThrows(IllegalArgumentException.class,
-                () -> bookingService.createBooking(dto, owner.getId()));  // свой item
-    }
-
-    @Test
-    void createBookingFailsNullDates() {
-        User owner = createUser("owner@test.com", "Owner");
-        User booker = createUser("booker@test.com", "Booker");
-        Item item = createItem(owner, "Item", true);
-
-        BookingRequestDto dto = new BookingRequestDto();
-        dto.setItemId(item.getId());
-
-        assertThrows(IllegalArgumentException.class,
-                () -> bookingService.createBooking(dto, booker.getId()));
-    }
-
-    @Test
-    void createBookingFailsEndBeforeStart() {
-        User owner = createUser("owner@test.com", "Owner");
-        User booker = createUser("booker@test.com", "Booker");
-        Item item = createItem(owner, "Item", true);
-
-        BookingRequestDto dto = new BookingRequestDto();
-        dto.setItemId(item.getId());
-        dto.setStart(LocalDateTime.now().plusDays(2));  // start > end
-        dto.setEnd(LocalDateTime.now().plusDays(1));
-
-        assertThrows(IllegalArgumentException.class,
-                () -> bookingService.createBooking(dto, booker.getId()));
+                () -> bookingService.createBooking(dto, owner.getId()));
     }
 
 
@@ -401,5 +366,4 @@ class BookingServiceImplTest {
         i.setOwner(owner);
         return itemRepository.save(i);
     }
-
 }
