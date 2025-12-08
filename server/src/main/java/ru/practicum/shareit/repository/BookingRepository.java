@@ -124,6 +124,8 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
     List<Booking> findByOwnerAndStatus(Long ownerId, BookingStatus status, Pageable pageable);
 
 
+    // ===== last/next для одной вещи (используется в BookingServiceImpl.findLastBooking/NextBooking) =====
+
     @Query("""
         SELECT b FROM Booking b
         WHERE b.item.id = :itemId
@@ -141,4 +143,22 @@ public interface BookingRepository extends JpaRepository<Booking, Long> {
         ORDER BY b.start ASC
     """)
     List<Booking> findNextBookingRaw(Long itemId, Pageable pageable);
+
+    @Query("""
+        SELECT b FROM Booking b
+        WHERE b.item.id IN :itemIds
+          AND b.start < CURRENT_TIMESTAMP
+          AND b.status = 'APPROVED'
+        ORDER BY b.item.id ASC, b.start DESC
+    """)
+    List<Booking> findLastBookingsForItems(List<Long> itemIds);
+
+    @Query("""
+        SELECT b FROM Booking b
+        WHERE b.item.id IN :itemIds
+          AND b.start > CURRENT_TIMESTAMP
+          AND b.status = 'APPROVED'
+        ORDER BY b.item.id ASC, b.start ASC
+    """)
+    List<Booking> findNextBookingsForItems(List<Long> itemIds);
 }
