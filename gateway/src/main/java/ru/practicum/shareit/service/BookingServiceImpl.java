@@ -21,6 +21,13 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public BookingResponseDto createBooking(BookingRequestDto bookingDto, Long userId) {
+        if (bookingDto.getStart() == null || bookingDto.getEnd() == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Даты начала и окончания обязательны");
+        }
+        if (!bookingDto.getStart().isBefore(bookingDto.getEnd())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Некорректный интервал бронирования");
+        }
+
         ResponseEntity<Object> response = bookingClient.bookItem(userId, bookingDto);
 
         if (response.getStatusCode().is2xxSuccessful()) {
@@ -58,11 +65,6 @@ public class BookingServiceImpl implements BookingService {
     @Override
     public List<BookingResponseDto> getBookingsByUser(Long userId, String state, Integer from, Integer size) {
         var response = bookingClient.getBookingsByBooker(userId, state, from, size);
-
-        System.out.println("STATUS: " + response.getStatusCode());
-        System.out.println("BODY: " + response.getBody());
-        System.out.println("IS_2XX: " + response.getStatusCode().is2xxSuccessful());
-
         if (!response.getStatusCode().is2xxSuccessful()) {
             throw new RuntimeException("Server error: " + response.getStatusCode() + " " + response.getBody());
         }
@@ -70,7 +72,6 @@ public class BookingServiceImpl implements BookingService {
         return mapper.convertValue(response.getBody(),
                 mapper.getTypeFactory().constructCollectionType(List.class, BookingResponseDto.class));
     }
-
 
     @Override
     public List<BookingResponseDto> getBookingsByOwner(Long ownerId, String state, Integer from, Integer size) {
