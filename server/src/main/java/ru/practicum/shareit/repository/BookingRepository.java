@@ -1,0 +1,164 @@
+package ru.practicum.shareit.repository;
+
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import ru.practicum.shareit.entity.Booking;
+import ru.practicum.shareit.entity.BookingStatus;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+public interface BookingRepository extends JpaRepository<Booking, Long> {
+
+    List<Booking> findAllByBookerIdOrderByStartDesc(Long bookerId);
+
+    List<Booking> findAllByBookerIdOrderByStartDesc(Long bookerId, Pageable pageable);
+
+    List<Booking> findAllByBookerIdAndStartBeforeAndEndAfterOrderByStartDesc(
+            Long bookerId, LocalDateTime now1, LocalDateTime now2);
+
+    List<Booking> findAllByBookerIdAndStartBeforeAndEndAfterOrderByStartDesc(
+            Long bookerId, LocalDateTime now1, LocalDateTime now2, Pageable pageable);
+
+    List<Booking> findAllByBookerIdAndEndBeforeOrderByStartDesc(
+            Long bookerId, LocalDateTime now);
+
+    List<Booking> findAllByBookerIdAndEndBeforeOrderByStartDesc(
+            Long bookerId, LocalDateTime now, Pageable pageable);
+
+    List<Booking> findAllByBookerIdAndStartAfterOrderByStartDesc(
+            Long bookerId, LocalDateTime now);
+
+    List<Booking> findAllByBookerIdAndStartAfterOrderByStartDesc(
+            Long bookerId, LocalDateTime now, Pageable pageable);
+
+    List<Booking> findAllByBookerIdAndStatusOrderByStartDesc(
+            Long bookerId, BookingStatus status);
+
+    List<Booking> findAllByBookerIdAndStatusOrderByStartDesc(
+            Long bookerId, BookingStatus status, Pageable pageable);
+
+
+    boolean existsByItemIdAndBookerIdAndEndBefore(Long itemId, Long bookerId, LocalDateTime end);
+
+
+    @Query("""
+        SELECT b FROM Booking b
+        WHERE b.item.owner.id = :ownerId
+        ORDER BY b.start DESC
+    """)
+    List<Booking> findAllByOwnerId(Long ownerId);
+
+    @Query("""
+        SELECT b FROM Booking b
+        WHERE b.item.owner.id = :ownerId
+        ORDER BY b.start DESC
+    """)
+    List<Booking> findAllByOwnerId(Long ownerId, Pageable pageable);
+
+    @Query("""
+        SELECT b FROM Booking b
+        WHERE b.item.owner.id = :ownerId
+          AND b.start < :now
+          AND b.end > :now
+        ORDER BY b.start DESC
+    """)
+    List<Booking> findCurrentByOwner(Long ownerId, LocalDateTime now);
+
+    @Query("""
+        SELECT b FROM Booking b
+        WHERE b.item.owner.id = :ownerId
+          AND b.start < :now
+          AND b.end > :now
+        ORDER BY b.start DESC
+    """)
+    List<Booking> findCurrentByOwner(Long ownerId, LocalDateTime now, Pageable pageable);
+
+    @Query("""
+        SELECT b FROM Booking b
+        WHERE b.item.owner.id = :ownerId
+          AND b.end < :now
+        ORDER BY b.start DESC
+    """)
+    List<Booking> findPastByOwner(Long ownerId, LocalDateTime now);
+
+    @Query("""
+        SELECT b FROM Booking b
+        WHERE b.item.owner.id = :ownerId
+          AND b.end < :now
+        ORDER BY b.start DESC
+    """)
+    List<Booking> findPastByOwner(Long ownerId, LocalDateTime now, Pageable pageable);
+
+    @Query("""
+        SELECT b FROM Booking b
+        WHERE b.item.owner.id = :ownerId
+          AND b.start > :now
+        ORDER BY b.start DESC
+    """)
+    List<Booking> findFutureByOwner(Long ownerId, LocalDateTime now);
+
+    @Query("""
+        SELECT b FROM Booking b
+        WHERE b.item.owner.id = :ownerId
+          AND b.start > :now
+        ORDER BY b.start DESC
+    """)
+    List<Booking> findFutureByOwner(Long ownerId, LocalDateTime now, Pageable pageable);
+
+    @Query("""
+        SELECT b FROM Booking b
+        WHERE b.item.owner.id = :ownerId
+          AND b.status = :status
+        ORDER BY b.start DESC
+    """)
+    List<Booking> findByOwnerAndStatus(Long ownerId, BookingStatus status);
+
+    @Query("""
+        SELECT b FROM Booking b
+        WHERE b.item.owner.id = :ownerId
+          AND b.status = :status
+        ORDER BY b.start DESC
+    """)
+    List<Booking> findByOwnerAndStatus(Long ownerId, BookingStatus status, Pageable pageable);
+
+
+    // ===== last/next для одной вещи (используется в BookingServiceImpl.findLastBooking/NextBooking) =====
+
+    @Query("""
+        SELECT b FROM Booking b
+        WHERE b.item.id = :itemId
+          AND b.start < CURRENT_TIMESTAMP
+          AND b.status = 'APPROVED'
+        ORDER BY b.start DESC
+    """)
+    List<Booking> findLastBookingRaw(Long itemId, Pageable pageable);
+
+    @Query("""
+        SELECT b FROM Booking b
+        WHERE b.item.id = :itemId
+          AND b.start > CURRENT_TIMESTAMP
+          AND b.status = 'APPROVED'
+        ORDER BY b.start ASC
+    """)
+    List<Booking> findNextBookingRaw(Long itemId, Pageable pageable);
+
+    @Query("""
+        SELECT b FROM Booking b
+        WHERE b.item.id IN :itemIds
+          AND b.start < CURRENT_TIMESTAMP
+          AND b.status = 'APPROVED'
+        ORDER BY b.item.id ASC, b.start DESC
+    """)
+    List<Booking> findLastBookingsForItems(List<Long> itemIds);
+
+    @Query("""
+        SELECT b FROM Booking b
+        WHERE b.item.id IN :itemIds
+          AND b.start > CURRENT_TIMESTAMP
+          AND b.status = 'APPROVED'
+        ORDER BY b.item.id ASC, b.start ASC
+    """)
+    List<Booking> findNextBookingsForItems(List<Long> itemIds);
+}
