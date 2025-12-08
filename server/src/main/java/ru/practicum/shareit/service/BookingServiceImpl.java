@@ -124,17 +124,13 @@ public class BookingServiceImpl implements BookingService {
     }
 
     private void validateBooking(BookingRequestDto dto, Item item, Long userId) {
+
         if (!item.getAvailable()) {
             throw new IllegalArgumentException("Вещь недоступна");
         }
+
         if (item.getOwner().getId().equals(userId)) {
             throw new IllegalArgumentException("Нельзя бронировать свою вещь");
-        }
-        if (dto.getStart() == null || dto.getEnd() == null) {
-            throw new IllegalArgumentException("Даты обязательны");
-        }
-        if (!dto.getStart().isBefore(dto.getEnd())) {
-            throw new IllegalArgumentException("Некорректный интервал");
         }
     }
 
